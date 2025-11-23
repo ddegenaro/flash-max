@@ -116,7 +116,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--spatial_resolution',
         type=float,
-        default=100,
+        default=300,
         help='Number of space steps to evaluate at per unit space. Default 100.'
     )
     parser.add_argument(

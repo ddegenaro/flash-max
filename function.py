@@ -8,7 +8,7 @@ def u(t, x, y):
     return f(x + c * t) + f(y + c * t)
     
 def f(s):
-    return torch.exp(-10. * s**2) / 5.
+    return torch.exp(-5. * s**2) / 5.
 
 # def u(t: torch.Tensor, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 #     return f(c * sqrt2 * t + x + y) + g(-c * sqrt5 * t + x - 2 * y)

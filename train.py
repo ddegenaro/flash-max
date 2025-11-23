@@ -246,7 +246,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_val',
         type=int,
-        default=10_000,
+        default=100_000,
         help='Number of samples to generate for validation. Default 10,000.'
     )
     parser.add_argument(
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1000,
+        default=10_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -277,14 +277,14 @@ if __name__ == "__main__":
         '--mins',
         type=float,
         nargs='+',
-        default=[0.] * (input_dim + 1),
+        default=[0.] * (1 + input_dim),
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--maxes',
         type=float,
         nargs='+',
-        default=[1.] * (input_dim + 1),
+        default=[1.] * (1 + input_dim),
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -308,13 +308,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=1e-2,
+        default=1e-4,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-3,
+        default=1e-5,
         help='Weight decay.'
     )
     parser.add_argument(
