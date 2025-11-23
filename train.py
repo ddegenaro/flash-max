@@ -343,7 +343,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '--k',
-        type=float,
+        type=int,
         default=10,
         help='Patience for atol.'
     )
