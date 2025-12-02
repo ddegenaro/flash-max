@@ -1,21 +1,14 @@
 import torch
 
 # c MUST BE DEFINED
-c: float = 1.
+c: float = 10.
 
 # # u(t, x, [y, z]) MUST BE DEFINED
 def u(t, x, y):
-    return f(x + c * t) + f(y + c * t)
+    return x**2 + y**2
     
-def f(s):
-    return torch.exp(-5. * s**2) / 5.
-
-# def u(t: torch.Tensor, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-#     return f(c * sqrt2 * t + x + y) + g(-c * sqrt5 * t + x - 2 * y)
-
-# # DEFINE HELPER VARS AND FUNCS AS NEEDED
-# a = 5.0
-# b = 0.0
+# def f(s):
+#     return torch.exp(-5. * s**2) / 5.
 
 # sqrt2 = torch.sqrt(torch.tensor(2.))
 # sqrt5 = torch.sqrt(torch.tensor(5.))

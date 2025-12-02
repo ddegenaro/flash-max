@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from data_sampler import random_data
 from function import u, c
-from wave_equation import Wave
+from wave_equation import Wave, WaveSimplified
 from utils import DEVICE
 
 torch.manual_seed(42)
@@ -58,6 +58,7 @@ def train_epoch(
         if s % log_freq == 0:
             al = total_loss_train / s
             print(f'Epoch: {es:02d} - Step: {s:04d} - Loss: {lv:.4f} - Avg: {al:.4f}')
+        
     training_time = time() - training_start
 
     model.eval()
@@ -112,12 +113,19 @@ def main(args):
         shuffle=True
     )
 
-    model = Wave(
+    if args.use_simplified:
+        model_class = WaveSimplified
+    else:
+        model_class = Wave
+    
+    model = model_class(
         width=args.width,
         c=args.c,
         input_dim=args.input_dim,
         output_dim=args.output_dim
     ).to(DEVICE)
+    
+    print(f'Training {model_class.__name__} on {DEVICE}...')
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -162,7 +170,7 @@ def main(args):
     k = args.k
     last_k_losses = []
 
-    for epoch in range(args.epochs):
+    for epoch in range(args.max_epochs):
         mse, training_time, val_time = train_epoch(
             train_loader=train_loader,
             val_loader=val_loader,
@@ -170,7 +178,7 @@ def main(args):
             optimizer=optimizer,
             loss_fn=loss_fn,
             epoch=epoch,
-            epochs=args.epochs,
+            epochs=args.max_epochs,
             log_freq=args.log_freq,
             verbose=args.verbose
         )
@@ -225,11 +233,13 @@ def validate(args):
     assert args.c > 0
     assert args.input_dim > 0
     assert args.output_dim > 0
-    assert args.epochs > 0
+    assert args.max_epochs > 0
     assert args.lr > 0
-    assert args.wd > 0
+    assert args.wd >= 0
     assert args.log_freq > 0
     assert args.tol > 0
+    for i in range(len(args.mins)):
+        assert args.mins[i] < args.maxes[i]
 
 if __name__ == "__main__":
 
@@ -240,13 +250,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=100_000,
+        default=1_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
         '--n_val',
         type=int,
-        default=100_000,
+        default=1_000,
         help='Number of samples to generate for validation. Default 10,000.'
     )
     parser.add_argument(
@@ -258,8 +268,14 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=10_000,
+        default=100,
         help='Width of the hidden layer of the neural network. Default 1000.'
+    )
+    parser.add_argument(
+        '--activation',
+        type=str,
+        default='elu',
+        help='Activation function to use. Default ELU.'
     )
     parser.add_argument(
         '--c',
@@ -300,9 +316,9 @@ if __name__ == "__main__":
         help='Number of wave displacement dimensions to be output. Default 1.'
     )
     parser.add_argument(
-        '--epochs',
+        '--max_epochs',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Number of times to show the data to the model.'
     )
     parser.add_argument(
@@ -314,7 +330,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-5,
+        default=0.,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -332,13 +348,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--tol',
         type=float,
-        default=8e-5,
+        default=8e-8,
         help='Stop training if MSE is less than this tolerance.'
     )
     parser.add_argument(
         '--atol',
         type=float,
-        default=1e-4,
+        default=1e-8,
         help='Stop training if MSE is not changing by more than this tolerance.'
     )
     parser.add_argument(
@@ -346,6 +362,12 @@ if __name__ == "__main__":
         type=int,
         default=10,
         help='Patience for atol.'
+    )
+    parser.add_argument(
+        '--use_simplified',
+        action='store_true',
+        default=False,
+        help='Use simplified architecture.'
     )
 
     args = parser.parse_args()

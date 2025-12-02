@@ -2,14 +2,19 @@ import os
 import sys
 import json
 import argparse
+from typing import Any
 
 import torch
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib import animation
 
-from wave_equation import Wave
-from utils import DEVICE
+from wave_equation import Wave, WaveSimplified
+# from utils import DEVICE
+DEVICE = 'cpu'
+
+def func(current_frame: int, total_frames: int) -> Any:
+    print(f'Saving frame {current_frame+1}...', end='\r', flush=True)
 
 def main(args):
     
@@ -17,6 +22,7 @@ def main(args):
         experiment_num = str(max([int(x) for x in os.listdir('experiments')]))
     else:
         experiment_num = str(args.experiment_num)
+    print(f'Visualizing experiment {experiment_num}...')
     path = os.path.join('experiments', experiment_num)
     
     sys.path.append(path)
@@ -27,11 +33,17 @@ def main(args):
         open(os.path.join(path, 'hparams.json'), 'r', encoding='utf-8')
     )
 
-    model = Wave(
+    if hparams['use_simplified']:
+        model_class = WaveSimplified
+    else:
+        model_class = Wave
+    
+    model = model_class(
         width=hparams['width'],
         c=hparams['c'],
         input_dim=hparams['input_dim'],
-        output_dim=hparams['output_dim']
+        output_dim=hparams['output_dim'],
+        activation = hparams['activation']
     ).to(DEVICE)
 
     model.load_state_dict(torch.load(
@@ -57,10 +69,20 @@ def main(args):
     
     for plot_true_sol in (True, False):
         
+        fname = f'animation_true.{args.ext}' if plot_true_sol else f'animation.{args.ext}'
+        fp = os.path.join(path, fname)
+        if os.path.exists(fp):
+            continue
+        
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
         artists = []
 
-        for i in range(len(input_cols[0])):
+        frame_count = len(input_cols[0])
+        
+        Zs = []
+        
+        print()
+        for i in range(frame_count):
             
             t = input_cols[0][i].expand(X_flat.shape[0]).unsqueeze(1).to(DEVICE)
             pos = torch.stack((X_flat, Y_flat)).transpose(-1, 0)
@@ -73,11 +95,16 @@ def main(args):
                 )
             else:
                 Z = model(t, pos)
+                
+            Zs.append(Z.detach().reshape(X.shape))
             
-            Z_np = Z.detach().reshape(X.shape).cpu().numpy()
-            
+            print(f'Computing progress: {i+1}/{frame_count}...', end='\r', flush=True)
+        
+        print()
+        for i in range(frame_count):
+        
             surf = ax.plot_surface(
-                X_np, Y_np, Z_np,
+                X_np, Y_np, Zs[i].cpu().numpy(),
                 cmap=cm.coolwarm,
                 linewidth=0,
                 antialiased=False,
@@ -86,16 +113,21 @@ def main(args):
             
             artists.append([surf])
             
+            print(f'Plotting progress: {i+1}/{frame_count}...', end='\r', flush=True)
+            
         ani = animation.ArtistAnimation(
             fig=fig,
             artists=artists,
             interval=tr
         )
         
-        fname = 'animation_true.gif' if plot_true_sol else 'animation.gif'
+        print()
         ani.save(
-            filename=os.path.join(path, fname),
-            writer="pillow"
+            filename=fp,
+            writer=args.writer,
+            fps=args.fps,
+            dpi=args.dpi,
+            progress_callback=func
         )
 
 if __name__ == "__main__":
@@ -124,7 +156,31 @@ if __name__ == "__main__":
         '--height',
         type=float,
         default=2,
-        help='z-value maximum height for the visualization.'
+        help='z-value maximum height for the visualization. Default: 2'
+    )
+    parser.add_argument(
+        '--ext',
+        type=str,
+        default='gif',
+        help='Filetype to save animation to. Default: gif.'
+    )
+    parser.add_argument(
+        '--dpi',
+        type=int,
+        default=100,
+        help='DPI for animation. Default: 100.'
+    )
+    parser.add_argument(
+        '--fps',
+        type=int,
+        default=30,
+        help='FPS for animation. Default: 30.'
+    )
+    parser.add_argument(
+        '--writer',
+        type=str,
+        default='ffmpeg',
+        help='Writer for animation. Default: ffmpeg. pillow also an option.'
     )
 
     args = parser.parse_args()
