@@ -1,11 +1,14 @@
 import torch
 
 # c MUST BE DEFINED
-c: float = 10.
+c: float = 1.
 
 # # u(t, x, [y, z]) MUST BE DEFINED
 def u(t, x, y):
     return x**2 + y**2
+    
+# def f(s):
+#     return torch.exp(-10. * s**2) / 5.
     
 # def f(s):
 #     return torch.exp(-5. * s**2) / 5.

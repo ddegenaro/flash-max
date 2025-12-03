@@ -25,6 +25,12 @@ class Wave(nn.Module):
             self.activation = nn.GELU()
         elif activation == 'swish' or activation == 'silu':
             self.activation = nn.SiLU()
+        elif activation == 'sigmoid':
+            self.activation = nn.Sigmoid()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        elif activation == 'square':
+            self.activation = lambda x: x**2
         else:
             self.activation = nn.ReLU()
 
@@ -55,6 +61,32 @@ class Wave(nn.Module):
             + self.activation(time_out_minus + pos_out_minus + self.bias_minus)
         )
         
+# class ShallowNet(nn.Module):
+#     def __init__(
+#         self,
+#         width: int = 10,
+#         c: float = 1.,
+#         input_dim: int = 1,
+#         output_dim: int = 1,
+#         activation: str = 'relu'
+#     ):
+#         super().__init__()
+#         self.hidden = nn.Linear(input_dim, width)
+#         self.out    = nn.Linear(width, output_dim)
+#         activation = activation.lower()
+#         if activation == 'elu':
+#             self.activation = nn.ELU()
+#         elif activation == 'gelu':
+#             self.activation = nn.GELU()
+#         elif activation == 'swish' or activation == 'silu':
+#             self.activation = nn.SiLU()
+#         elif activation == 'sigmoid':
+#             self.activation = nn.Sigmoid()
+#         else:
+#             self.activation = nn.ReLU()
+#     def forward(self, t, x):
+#         return self.out(self.activation(self.hidden(x)))
+        
 class WaveSimplified(nn.Module):
 
     def __init__(
@@ -79,6 +111,12 @@ class WaveSimplified(nn.Module):
             self.activation = nn.GELU()
         elif activation == 'swish' or activation == 'silu':
             self.activation = nn.SiLU()
+        elif activation == 'sigmoid':
+            self.activation = nn.Sigmoid()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        elif activation == 'square':
+            self.activation = lambda x: x**2
         else:
             self.activation = nn.ReLU()
 
@@ -87,9 +125,9 @@ class WaveSimplified(nn.Module):
 
         self.output_weight = nn.Linear(width, self.output_dim)
         
-        nn.init.kaiming_normal_(self.position_weight_plus.weight, nonlinearity='relu')
+        nn.init.normal_(self.position_weight_plus.weight, )
         nn.init.zeros_(self.position_weight_plus.bias)
-        nn.init.kaiming_normal_(self.output_weight.weight, nonlinearity='relu')
+        nn.init.normal_(self.output_weight.weight, )
         nn.init.zeros_(self.output_weight.bias)
 
     def forward(self, t, x):

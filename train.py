@@ -82,32 +82,45 @@ def train_epoch(
 def main(args):
 
     print(f'Beginning training.')
+    
+    train_inputs, train_targets = random_data(
+        num_samples=args.n_train,
+        spatial_dim=args.input_dim,
+        mins=args.mins,
+        maxes=args.maxes,
+        f=u,
+        noise_scale=args.noise_scale
+    )
+    
+    mu = train_inputs.mean(dim=0)
+    sigma = train_inputs.std(dim=0)
+    
+    if args.norm_inputs:
+        train_inputs = (train_inputs - mu.unsqueeze(0)) / sigma.unsqueeze(0)
 
     train_loader = DataLoader(
         TensorDataset(
-            *random_data(
-                num_samples=args.n_train,
-                spatial_dim=args.input_dim,
-                mins=args.mins,
-                maxes=args.maxes,
-                f=u,
-                noise_scale=args.noise_scale
-            )
+            train_inputs, train_targets
         ),
         batch_size=args.batch_size,
         shuffle=True
     )
+    
+    val_inputs, val_targets = random_data(
+        num_samples=args.n_val,
+        spatial_dim=args.input_dim,
+        mins=args.mins,
+        maxes=args.maxes,
+        f=u,
+        noise_scale=args.noise_scale
+    )
+    
+    if args.norm_inputs:
+        val_inputs = (val_inputs - mu.unsqueeze(0)) / sigma.unsqueeze(0)
 
     val_loader = DataLoader(
         TensorDataset(
-            *random_data(
-                num_samples=args.n_val,
-                spatial_dim=args.input_dim,
-                mins=args.mins,
-                maxes=args.maxes,
-                f=u,
-                noise_scale=args.noise_scale
-            )
+            val_inputs, val_targets
         ),
         batch_size=args.batch_size,
         shuffle=True
@@ -143,6 +156,8 @@ def main(args):
 
     hparams = vars(args)
     hparams['param_count'] = sum([p.numel() for p in model.parameters()])
+    hparams['mu'] = mu.tolist()
+    hparams['sigma'] = sigma.tolist()
     json.dump(
         hparams,
         open(
@@ -268,14 +283,14 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=100,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
         '--activation',
         type=str,
         default='elu',
-        help='Activation function to use. Default ELU.'
+        help='Activation function to use. Default Tanh.'
     )
     parser.add_argument(
         '--c',
@@ -319,7 +334,7 @@ if __name__ == "__main__":
         '--max_epochs',
         type=int,
         default=10_000,
-        help='Number of times to show the data to the model.'
+        help='Maximum number of times to show the data to the model.'
     )
     parser.add_argument(
         '--lr',
@@ -330,7 +345,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--wd',
         type=float,
-        default=0.,
+        default=1e-6,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -348,7 +363,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--tol',
         type=float,
-        default=8e-8,
+        default=1e-8,
         help='Stop training if MSE is less than this tolerance.'
     )
     parser.add_argument(
@@ -366,8 +381,14 @@ if __name__ == "__main__":
     parser.add_argument(
         '--use_simplified',
         action='store_true',
-        default=False,
+        default=True,
         help='Use simplified architecture.'
+    )
+    parser.add_argument(
+        '--norm_inputs',
+        action='store_true',
+        default=False,
+        help='Normalize inputs via z-scaling.'
     )
 
     args = parser.parse_args()

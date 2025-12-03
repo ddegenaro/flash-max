@@ -56,10 +56,18 @@ def main(args):
     tr = args.temporal_resolution
     sr = args.spatial_resolution
     
-    input_cols = tuple([torch.arange(mins[0], maxes[0], (maxes[0] - mins[0]) / tr)] + [
+    input_cols = [torch.arange(mins[0], maxes[0], (maxes[0] - mins[0]) / tr)] + [
         torch.arange(start, end, (end - start) / sr)
         for start, end in zip(mins[1:], maxes[1:])
-    ])
+    ]
+    
+    if hparams['norm_inputs']:
+        mu = hparams['mu']
+        sigma = hparams['sigma']
+        
+        assert len(mu) == len(sigma) == len(input_cols)
+        for i in range(len(mu)):
+            input_cols[i] = (input_cols[i] - mu[i]) / sigma[i]
 
     X, Y = torch.meshgrid(input_cols[1], input_cols[2])
     X_flat = X.flatten().to(DEVICE)
@@ -107,8 +115,7 @@ def main(args):
                 X_np, Y_np, Zs[i].cpu().numpy(),
                 cmap=cm.coolwarm,
                 linewidth=0,
-                antialiased=False,
-                vmax=args.height
+                antialiased=False
             )
             
             artists.append([surf])
