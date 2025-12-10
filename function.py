@@ -4,14 +4,14 @@ import torch
 c: float = 1.
 
 # # u(t, x, [y, z]) MUST BE DEFINED
-def u(t, x, y):
-    return x**2 + y**2
+# def u(t, x, y):
+#     return x**2 + y**2
     
 # def f(s):
 #     return torch.exp(-10. * s**2) / 5.
     
-# def f(s):
-#     return torch.exp(-5. * s**2) / 5.
+def u(t, x, y):
+    return torch.exp(-5. * (t-x)**2) / 5. + torch.exp(-5. * (t-y)**2) / 5.
 
 # sqrt2 = torch.sqrt(torch.tensor(2.))
 # sqrt5 = torch.sqrt(torch.tensor(5.))

@@ -51,8 +51,15 @@ def main(args):
         map_location=DEVICE
     ))
 
-    mins = hparams['mins']
-    maxes = hparams['maxes']
+    if args.mins is None:
+        mins = hparams['mins']
+    else:
+        mins = args.mins
+    if args.maxes is None:
+        maxes = hparams['maxes']
+    else:
+        maxes = args.maxes
+    
     tr = args.temporal_resolution
     sr = args.spatial_resolution
     
@@ -188,6 +195,20 @@ if __name__ == "__main__":
         type=str,
         default='ffmpeg',
         help='Writer for animation. Default: ffmpeg. pillow also an option.'
+    )
+    parser.add_argument(
+        '--mins',
+        type=float,
+        nargs='+',
+        default=None,
+        help='Minimum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--maxes',
+        type=float,
+        nargs='+',
+        default=None,
+        help='Maximum value for each dimension. First dimension interpreted as time.'
     )
 
     args = parser.parse_args()

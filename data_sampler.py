@@ -8,7 +8,8 @@ def random_data(
     mins: list[float] = [0., 0., 0.],
     maxes: list[float] = [1., 1., 1.],
     f: Callable = None,
-    noise_scale: float = 1e-3
+    noise_scale: float = 1e-3,
+    restrict_time: bool = False
 ) -> tuple[torch.Tensor, Union[torch.Tensor, None]]:
     
     """
@@ -20,7 +21,9 @@ def random_data(
         mins (`list[float]`): The minimum value each of the spatio-temporal dimensions should take. The first dimension is interpreted as time.
         maxes (`list[float]`): The corresponding maximum values.
         f (`Callable`): The function for generating targets. Expected signature is `f(t, x, [y, z])`.
-
+        noise_scale (`float`): The scale of the noise to add to the targets.
+        restrict_time (`bool`): Whether to restrict all time inputs only to the endpoints.
+        
     Returns:
         `tuple[torch.Tensor, Union[torch.Tensor, None]]` where the first entry is the inputs and the second is the targets (`None` if `f` is `None`).
     """
@@ -30,9 +33,22 @@ def random_data(
         f'spatial_dim should be one less than number of mins/maxes, but got: spatial_dim={spatial_dim}, {l_mins} mins, {l_maxes} maxes'
     )
 
-    sample = torch.rand(
-        (1 + spatial_dim, num_samples), dtype=torch.float32
-    )
+    if restrict_time:
+        sample = torch.rand(
+            (spatial_dim, num_samples), dtype=torch.float32
+        )
+        
+        ones = torch.ones(
+            (1, num_samples), dtype=torch.float32
+        )
+        ones[:, :round(num_samples / 2)] *= mins[0]
+        ones[:, round(num_samples / 2):] *= maxes[0]
+        
+        sample = torch.cat((ones, sample))
+    else:
+        sample = torch.rand(
+            (1 + spatial_dim, num_samples), dtype=torch.float32
+        )
 
     for i in range(1 + spatial_dim):
         sample[i, :] *= (maxes[i] - mins[i])

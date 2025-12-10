@@ -89,7 +89,8 @@ def main(args):
         mins=args.mins,
         maxes=args.maxes,
         f=u,
-        noise_scale=args.noise_scale
+        noise_scale=args.noise_scale,
+        restrict_time=args.restrict_time
     )
     
     mu = train_inputs.mean(dim=0)
@@ -265,13 +266,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
         '--n_val',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Number of samples to generate for validation. Default 10,000.'
     )
     parser.add_argument(
@@ -289,7 +290,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--activation',
         type=str,
-        default='elu',
+        default='relu',
         help='Activation function to use. Default Tanh.'
     )
     parser.add_argument(
@@ -345,7 +346,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-6,
+        default=1e-8,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -381,7 +382,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--use_simplified',
         action='store_true',
-        default=True,
+        default=False,
         help='Use simplified architecture.'
     )
     parser.add_argument(
@@ -389,6 +390,12 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Normalize inputs via z-scaling.'
+    )
+    parser.add_argument(
+        '--restrict_time',
+        action='store_true',
+        default=True,
+        help='Restrict the time inputs in training to be only the endpoints of the time interval.'
     )
 
     args = parser.parse_args()

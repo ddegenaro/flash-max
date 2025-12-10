@@ -42,7 +42,9 @@ class Wave(nn.Module):
 
         self.output_weight = nn.Linear(width, self.output_dim)
         
-        nn.init.normal_(self.output_weight.weight, 0, 1 / self.width)
+        nn.init.normal_(self.position_weight_plus.data, 0, 1)
+        nn.init.normal_(self.position_weight_minus.data, 0, 1)
+        nn.init.normal_(self.output_weight.weight, 0, 1)
 
     def forward(self, t, x):
 
@@ -59,33 +61,7 @@ class Wave(nn.Module):
         return self.output_weight(
             self.activation(time_out_plus + pos_out_plus + self.bias_plus)
             + self.activation(time_out_minus + pos_out_minus + self.bias_minus)
-        )
-        
-# class ShallowNet(nn.Module):
-#     def __init__(
-#         self,
-#         width: int = 10,
-#         c: float = 1.,
-#         input_dim: int = 1,
-#         output_dim: int = 1,
-#         activation: str = 'relu'
-#     ):
-#         super().__init__()
-#         self.hidden = nn.Linear(input_dim, width)
-#         self.out    = nn.Linear(width, output_dim)
-#         activation = activation.lower()
-#         if activation == 'elu':
-#             self.activation = nn.ELU()
-#         elif activation == 'gelu':
-#             self.activation = nn.GELU()
-#         elif activation == 'swish' or activation == 'silu':
-#             self.activation = nn.SiLU()
-#         elif activation == 'sigmoid':
-#             self.activation = nn.Sigmoid()
-#         else:
-#             self.activation = nn.ReLU()
-#     def forward(self, t, x):
-#         return self.out(self.activation(self.hidden(x)))
+        ) / self.width
         
 class WaveSimplified(nn.Module):
 
@@ -125,9 +101,9 @@ class WaveSimplified(nn.Module):
 
         self.output_weight = nn.Linear(width, self.output_dim)
         
-        nn.init.normal_(self.position_weight_plus.weight, )
+        nn.init.normal_(self.position_weight_plus.weight, 0., 1.)
         nn.init.zeros_(self.position_weight_plus.bias)
-        nn.init.normal_(self.output_weight.weight, )
+        nn.init.normal_(self.output_weight.weight, 0., 1.)
         nn.init.zeros_(self.output_weight.bias)
 
     def forward(self, t, x):
@@ -137,7 +113,73 @@ class WaveSimplified(nn.Module):
 
         return self.output_weight(
             self.activation(pos_out_plus)
+        ) / self.width
+        
+
+
+class ConicalWave(nn.Module):
+
+    def __init__(
+        self,
+        width: int = 10,
+        c: float = 1.,
+        input_dim: int = 1,
+        output_dim: int = 1,
+        activation: str = 'relu'
+    ):
+        super().__init__()
+
+        self.width = width
+        self.c = c
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        
+        activation = activation.lower()
+        if activation == 'elu':
+            self.activation = nn.ELU()
+        elif activation == 'gelu':
+            self.activation = nn.GELU()
+        elif activation == 'swish' or activation == 'silu':
+            self.activation = nn.SiLU()
+        elif activation == 'sigmoid':
+            self.activation = nn.Sigmoid()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        elif activation == 'square':
+            self.activation = lambda x: x**2
+        else:
+            self.activation = nn.ReLU()
+
+        self.position_weight_plus = nn.Parameter(torch.randn((self.input_dim, self.width)))
+        self.position_weight_minus = nn.Parameter(torch.randn((self.input_dim, self.width)))
+        
+        self.bias_plus = nn.Parameter(torch.zeros((1, self.width)))
+        self.bias_minus = nn.Parameter(torch.zeros((1, self.width)))
+
+        self.output_weight = nn.Linear(width, self.output_dim)
+        
+        nn.init.normal_(self.position_weight_plus.data, 0, 1)
+        nn.init.normal_(self.position_weight_minus.data, 0, 1)
+        nn.init.normal_(self.output_weight.weight, 0, 1)
+
+    def forward(self, t, x):
+
+        pos_out_plus = x @ self.position_weight_plus
+        pos_out_minus = x @ self.position_weight_minus
+
+        time_out_plus = self.c * (
+            t @ torch.sqrt((self.position_weight_plus ** 2).sum(0, keepdim=True))
         )
+        time_out_minus = - self.c * (
+            t @ torch.sqrt((self.position_weight_minus ** 2).sum(0, keepdim=True))
+        )
+
+        return self.output_weight(
+            self.activation(time_out_plus + pos_out_plus + self.bias_plus)
+            + self.activation(time_out_minus + pos_out_minus + self.bias_minus)
+        ) / self.width
+
+
 
 if __name__ == "__main__":
 
