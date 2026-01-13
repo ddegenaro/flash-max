@@ -40,11 +40,13 @@ class Wave(nn.Module):
         self.bias_plus = nn.Parameter(torch.zeros((1, self.width)))
         self.bias_minus = nn.Parameter(torch.zeros((1, self.width)))
 
-        self.output_weight = nn.Linear(width, self.output_dim)
+        self.output_weight_plus = nn.Linear(width, self.output_dim)
+        self.output_weight_minus = nn.Linear(width, self.output_dim)
         
         nn.init.normal_(self.position_weight_plus.data, 0, 1)
         nn.init.normal_(self.position_weight_minus.data, 0, 1)
-        nn.init.normal_(self.output_weight.weight, 0, 1)
+        nn.init.normal_(self.output_weight_plus.weight, 0, 1)
+        nn.init.normal_(self.output_weight_minus.weight, 0, 1)
 
     def forward(self, t, x):
 
@@ -58,9 +60,12 @@ class Wave(nn.Module):
             t @ torch.sqrt((self.position_weight_minus ** 2).sum(0, keepdim=True))
         )
 
-        return self.output_weight(
-            self.activation(time_out_plus + pos_out_plus + self.bias_plus)
-            + self.activation(time_out_minus + pos_out_minus + self.bias_minus)
+        return (
+            self.output_weight_plus(
+                self.activation(time_out_plus + pos_out_plus + self.bias_plus)
+            ) + self.output_weight_minus(
+                self.activation(time_out_minus + pos_out_minus + self.bias_minus)
+            )
         ) / self.width
         
 class WaveSimplified(nn.Module):

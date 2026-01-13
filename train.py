@@ -58,7 +58,6 @@ def train_epoch(
         if s % log_freq == 0:
             al = total_loss_train / s
             print(f'Epoch: {es:02d} - Step: {s:04d} - Loss: {lv:.4f} - Avg: {al:.4f}')
-        
     training_time = time() - training_start
 
     model.eval()
@@ -74,10 +73,11 @@ def train_epoch(
         loss = loss_fn(outputs, targets.unsqueeze(1))
 
         total_loss_val += loss.item() * targets.shape[0]
+        
         num_examples += targets.shape[0]
     val_time = time() - val_start
 
-    return (total_loss_val / num_examples) / (len(val_loader)), training_time, val_time
+    return (total_loss_val / num_examples), training_time, val_time
 
 def main(args):
 
@@ -115,6 +115,8 @@ def main(args):
         f=u,
         noise_scale=args.noise_scale
     )
+    
+    mean_val_f = (val_targets ** 2).mean()
     
     if args.norm_inputs:
         val_inputs = (val_inputs - mu.unsqueeze(0)) / sigma.unsqueeze(0)
@@ -171,72 +173,65 @@ def main(args):
     shutil.copyfile('function.py',  os.path.join('experiments', this_experiment, f'f.py'))
 
     with open(
-        os.path.join('experiments', this_experiment, 'mse.tsv'),
+        os.path.join('experiments', this_experiment, 'log.tsv'),
         'w+', encoding='utf-8'
     ) as fp:
-        fp.write('epoch\tmse\n')
-
-    with open(
-            os.path.join('experiments', this_experiment, 'time.tsv'),
-            'w+', encoding='utf-8'
-        ) as fp:
-            fp.write('epoch\ttraining_time\tval_time\n')
+        fp.write('epoch\tmse\ttraining_time\tval_time\trel_l2_error\n')
             
     best_loss = torch.inf
     k = args.k
     last_k_losses = []
 
-    for epoch in range(args.max_epochs):
-        mse, training_time, val_time = train_epoch(
-            train_loader=train_loader,
-            val_loader=val_loader,
-            model=model,
-            optimizer=optimizer,
-            loss_fn=loss_fn,
-            epoch=epoch,
-            epochs=args.max_epochs,
-            log_freq=args.log_freq,
-            verbose=args.verbose
-        )
-
-        with open(
-            os.path.join('experiments', this_experiment, 'mse.tsv'),
+    with open(
+            os.path.join('experiments', this_experiment, 'log.tsv'),
             'a', encoding='utf-8'
         ) as fp:
-            fp.write(f'{epoch+1}\t{mse}\n')
-
-        with open(
-            os.path.join('experiments', this_experiment, 'time.tsv'),
-            'a', encoding='utf-8'
-        ) as fp:
-            fp.write(f'{epoch+1}\t{training_time}\t{val_time}\n')
-
-        if mse < best_loss:
-            torch.save(
-                model.state_dict(),
-                os.path.join('experiments', this_experiment, 'model.pth')
+            
+        for epoch in range(args.max_epochs):
+            mse, training_time, val_time = train_epoch(
+                train_loader=train_loader,
+                val_loader=val_loader,
+                model=model,
+                optimizer=optimizer,
+                loss_fn=loss_fn,
+                epoch=epoch,
+                epochs=args.max_epochs,
+                log_freq=args.log_freq,
+                verbose=args.verbose
             )
             
-            best_loss = mse
+            rel_l2_error = mse / mean_val_f
+            
+            fp.write(
+                f'{epoch+1}\t{mse}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
+            )
 
-            if mse < args.tol: # must improve to break
-                print(f'Stopping early at epoch {epoch+1} (mse {mse} < args.tol {args.tol}).')
-                break
-            
-            if len(last_k_losses) == k:
-                last_k_losses_tensor = torch.tensor(last_k_losses)
-                if torch.allclose(
-                    last_k_losses_tensor,
-                    last_k_losses_tensor.mean(),
-                    atol=args.atol
-                ):
-                    print(f'Stopping early at epoch {epoch+1} (last k losses: {last_k_losses}).')
+            if mse < best_loss:
+                torch.save(
+                    model.state_dict(),
+                    os.path.join('experiments', this_experiment, 'model.pth')
+                )
+                
+                best_loss = mse
+
+                if mse < args.tol: # must improve to break
+                    print(f'Stopping early at epoch {epoch+1} (mse {mse} < args.tol {args.tol}).')
                     break
+                
+                if len(last_k_losses) == k:
+                    last_k_losses_tensor = torch.tensor(last_k_losses)
+                    if torch.allclose(
+                        last_k_losses_tensor,
+                        last_k_losses_tensor.mean(),
+                        atol=args.atol
+                    ):
+                        print(f'Stopping early at epoch {epoch+1} (last k losses: {last_k_losses}).')
+                        break
+                
+            if len(last_k_losses) == k:
+                del last_k_losses[0]
             
-        if len(last_k_losses) == k:
-            del last_k_losses[0]
-        
-        last_k_losses.append(mse)
+            last_k_losses.append(mse)
 
     print('Done.')
     print(f'Results can be found at {os.path.join('experiments', this_experiment)}.')
@@ -284,7 +279,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1_000,
+        default=1000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -340,13 +335,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=1e-4,
+        default=5e-4,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-8,
+        default=1e-7,
         help='Weight decay.'
     )
     parser.add_argument(
