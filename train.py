@@ -114,7 +114,7 @@ def main(args):
         maxes=args.maxes,
         f=u,
         noise_scale=args.noise_scale
-    )
+    ) # restrict_time is False by default, desirable here.
     
     mean_val_f = (val_targets ** 2).mean()
     
