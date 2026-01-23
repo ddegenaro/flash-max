@@ -335,13 +335,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=5e-4,
+        default=1e-1,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-7,
+        default=1e-3,
         help='Weight decay.'
     )
     parser.add_argument(
