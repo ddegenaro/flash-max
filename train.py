@@ -48,11 +48,11 @@ def train_epoch(
 
         optimizer.zero_grad()
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-        loss = loss_fn(outputs, targets.unsqueeze(1))
-        loss.backward()
+        mse_loss = loss_fn(outputs, targets.unsqueeze(1))
+        mse_loss.backward()
         optimizer.step()
 
-        lv = loss.item()
+        lv = mse_loss.item()
         total_loss_train += lv
         s = i + 1
         if s % log_freq == 0:
@@ -138,7 +138,8 @@ def main(args):
         width=args.width,
         c=args.c,
         input_dim=args.input_dim,
-        output_dim=args.output_dim
+        output_dim=args.output_dim,
+        dropout_val=args.do
     ).to(DEVICE)
     
     print(f'Training {model_class.__name__} on {DEVICE}...')
@@ -152,8 +153,10 @@ def main(args):
     loss_fn = torch.nn.MSELoss()
     
     os.makedirs('experiments', exist_ok=True)
+    experiments_list = os.listdir('experiments')
+    experiments_list.remove('.DS_Store')
     this_experiment = str(1 + max(
-        [int(d) for d in os.listdir('experiments')] + [0]
+        [int(d) for d in experiments_list] + [0]
     ))
     os.makedirs(os.path.join('experiments', this_experiment))
 
@@ -279,7 +282,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1000,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -341,8 +344,14 @@ if __name__ == "__main__":
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-3,
+        default=5e-6,
         help='Weight decay.'
+    )
+    parser.add_argument(
+        '--do',
+        type=float,
+        default=0.1,
+        help='Dropout probability.'
     )
     parser.add_argument(
         '--log_freq',

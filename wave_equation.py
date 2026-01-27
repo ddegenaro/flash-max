@@ -1,7 +1,9 @@
 import torch
 from torch import nn
 
-class Wave(nn.Module):
+from utils import PCNN
+
+class Wave(PCNN):
 
     def __init__(
         self,
@@ -9,30 +11,17 @@ class Wave(nn.Module):
         c: float = 1.,
         input_dim: int = 1,
         output_dim: int = 1,
-        activation: str = 'relu'
+        activation: str = 'relu',
+        dropout_val: float = 0.1
     ):
-        super().__init__()
-
-        self.width = width
-        self.c = c
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        
-        activation = activation.lower()
-        if activation == 'elu':
-            self.activation = nn.ELU()
-        elif activation == 'gelu':
-            self.activation = nn.GELU()
-        elif activation == 'swish' or activation == 'silu':
-            self.activation = nn.SiLU()
-        elif activation == 'sigmoid':
-            self.activation = nn.Sigmoid()
-        elif activation == 'tanh':
-            self.activation = nn.Tanh()
-        elif activation == 'square':
-            self.activation = lambda x: x**2
-        else:
-            self.activation = nn.ReLU()
+        super().__init__(
+            width=width,
+            c=c,
+            input_dim=input_dim,
+            output_dim=output_dim,
+            activation=activation,
+            dropout_val=dropout_val
+        )
 
         self.position_weight_plus = nn.Parameter(torch.randn((self.input_dim, self.width)))
         self.position_weight_minus = nn.Parameter(torch.randn((self.input_dim, self.width)))
@@ -52,6 +41,10 @@ class Wave(nn.Module):
 
         pos_out_plus = x @ self.position_weight_plus
         pos_out_minus = x @ self.position_weight_minus
+        
+        if self.dropout_val > 0:
+            pos_out_plus = self.dropout(pos_out_plus)
+            pos_out_minus = self.dropout(pos_out_minus)
 
         time_out_plus = self.c * (
             t @ torch.sqrt((self.position_weight_plus ** 2).sum(0, keepdim=True))
@@ -68,7 +61,7 @@ class Wave(nn.Module):
             )
         ) / self.width
         
-class WaveSimplified(nn.Module):
+class WaveSimplified(PCNN):
 
     def __init__(
         self,
@@ -76,32 +69,18 @@ class WaveSimplified(nn.Module):
         c: float = 1.,
         input_dim: int = 1,
         output_dim: int = 1,
-        activation: str = 'relu'
+        activation: str = 'relu',
+        dropout_val: float = 0.1
     ):
-        super().__init__()
+        super().__init__(
+            width=width,
+            c=c,
+            input_dim=input_dim,
+            output_dim=output_dim,
+            activation=activation,
+            dropout_val=dropout_val
+        )
 
-        self.width = width
-        self.c = c
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-
-        activation = activation.lower()
-        if activation == 'elu':
-            self.activation = nn.ELU()
-        elif activation == 'gelu':
-            self.activation = nn.GELU()
-        elif activation == 'swish' or activation == 'silu':
-            self.activation = nn.SiLU()
-        elif activation == 'sigmoid':
-            self.activation = nn.Sigmoid()
-        elif activation == 'tanh':
-            self.activation = nn.Tanh()
-        elif activation == 'square':
-            self.activation = lambda x: x**2
-        else:
-            self.activation = nn.ReLU()
-
-        # self.position_weight_plus = nn.Parameter(torch.randn((self.input_dim, self.width)))
         self.position_weight_plus = nn.Linear(self.input_dim, width)
 
         self.output_weight = nn.Linear(width, self.output_dim)
