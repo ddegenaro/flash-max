@@ -94,7 +94,7 @@ def main(args):
 
         frame_count = len(input_cols[0])
         
-        Zs = []
+        Us = []
         
         print()
         for i in range(frame_count):
@@ -103,15 +103,15 @@ def main(args):
             pos = torch.stack((X_flat, Y_flat)).transpose(-1, 0)
             
             if plot_true_sol:
-                Z = u(
+                U = u(
                     t,
                     pos[:, 0].unsqueeze(1),
                     pos[:, 1].unsqueeze(1)
                 )
             else:
-                Z = model(t, pos)
+                U = model(t, pos)
                 
-            Zs.append(Z.detach().reshape(X.shape))
+            Us.append(U.detach().reshape(X.shape))
             
             print(f'Computing progress: {i+1}/{frame_count}...', end='\r', flush=True)
         
@@ -119,7 +119,7 @@ def main(args):
         for i in range(frame_count):
         
             surf = ax.plot_surface(
-                X_np, Y_np, Zs[i].cpu().numpy(),
+                X_np, Y_np, Us[i].cpu().numpy(),
                 cmap=cm.coolwarm,
                 linewidth=0,
                 antialiased=False

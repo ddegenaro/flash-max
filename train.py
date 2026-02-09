@@ -10,7 +10,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from data_sampler import random_data
+from data_sampler import random_data, grid_data
 from function import u, c
 from wave_equation import Wave, WaveSimplified
 from utils import DEVICE
@@ -83,11 +83,16 @@ def main(args):
 
     print(f'Beginning training.')
     
-    train_inputs, train_targets = random_data(
+    if args.data_from_lattice:
+        data_fn = grid_data
+    else:
+        data_fn = random_data
+        
+    train_inputs, train_targets = data_fn(
         num_samples=args.n_train,
         spatial_dim=args.input_dim,
-        mins=args.mins,
-        maxes=args.maxes,
+        mins=args.train_mins,
+        maxes=args.train_maxes,
         f=u,
         noise_scale=args.noise_scale,
         restrict_time=args.restrict_time
@@ -98,20 +103,25 @@ def main(args):
     
     if args.norm_inputs:
         train_inputs = (train_inputs - mu.unsqueeze(0)) / sigma.unsqueeze(0)
+        
+    if args.batch_size > args.n_train:
+        batch_size = args.n_train
+    else:
+        batch_size = args.batch_size
 
     train_loader = DataLoader(
         TensorDataset(
             train_inputs, train_targets
         ),
-        batch_size=args.batch_size,
+        batch_size=batch_size,
         shuffle=True
     )
     
-    val_inputs, val_targets = random_data(
+    val_inputs, val_targets = data_fn(
         num_samples=args.n_val,
         spatial_dim=args.input_dim,
-        mins=args.mins,
-        maxes=args.maxes,
+        mins=args.val_mins,
+        maxes=args.val_maxes,
         f=u,
         noise_scale=args.noise_scale
     ) # restrict_time is False by default, desirable here.
@@ -125,7 +135,7 @@ def main(args):
         TensorDataset(
             val_inputs, val_targets
         ),
-        batch_size=args.batch_size,
+        batch_size=batch_size,
         shuffle=True
     )
 
@@ -139,10 +149,8 @@ def main(args):
         c=args.c,
         input_dim=args.input_dim,
         output_dim=args.output_dim,
-        dropout_val=args.do
+        # dropout_val=args.do
     ).to(DEVICE)
-    
-    print(f'Training {model_class.__name__} on {DEVICE}...')
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -184,6 +192,10 @@ def main(args):
     best_loss = torch.inf
     k = args.k
     last_k_losses = []
+    
+    print(f'(Exp. {this_experiment}) Training {model_class.__name__} on {DEVICE}...')
+    for key, value in hparams.items():
+        print(f'\t{key}: {value}')
 
     with open(
             os.path.join('experiments', this_experiment, 'log.tsv'),
@@ -252,8 +264,9 @@ def validate(args):
     assert args.wd >= 0
     assert args.log_freq > 0
     assert args.tol > 0
-    for i in range(len(args.mins)):
-        assert args.mins[i] < args.maxes[i]
+    for i in range(len(args.val_mins)):
+        assert args.train_mins[i] < args.train_maxes[i]
+        assert args.val_mins[i] < args.val_maxes[i]
 
 if __name__ == "__main__":
 
@@ -261,30 +274,6 @@ if __name__ == "__main__":
     input_dim = len(signature(u).parameters) - 1
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--n_train',
-        type=int,
-        default=10_000,
-        help='Number of samples to generate for training. Default 1,000.'
-    )
-    parser.add_argument(
-        '--n_val',
-        type=int,
-        default=10_000,
-        help='Number of samples to generate for validation. Default 10,000.'
-    )
-    parser.add_argument(
-        '--batch_size',
-        type=int,
-        default=1_000,
-        help='Batch size for training and validation. Default 1_000.'
-    )
-    parser.add_argument(
-        '--width',
-        type=int,
-        default=1_000,
-        help='Width of the hidden layer of the neural network. Default 1000.'
-    )
     parser.add_argument(
         '--activation',
         type=str,
@@ -304,26 +293,6 @@ if __name__ == "__main__":
         help='Number of spatial dimensions to be input. Default inferred from function.py.'
     )
     parser.add_argument(
-        '--mins',
-        type=float,
-        nargs='+',
-        default=[0.] * (1 + input_dim),
-        help='Minimum value for each dimension. First dimension interpreted as time.'
-    )
-    parser.add_argument(
-        '--maxes',
-        type=float,
-        nargs='+',
-        default=[1.] * (1 + input_dim),
-        help='Maximum value for each dimension. First dimension interpreted as time.'
-    )
-    parser.add_argument(
-        '--noise_scale',
-        type=float,
-        default=1e-4,
-        help='Standard deviation of the noise to be added.'
-    )
-    parser.add_argument(
         '--output_dim',
         type=int,
         default=1,
@@ -334,24 +303,6 @@ if __name__ == "__main__":
         type=int,
         default=10_000,
         help='Maximum number of times to show the data to the model.'
-    )
-    parser.add_argument(
-        '--lr',
-        type=float,
-        default=1e-1,
-        help='Learning rate.'
-    )
-    parser.add_argument(
-        '--wd',
-        type=float,
-        default=5e-6,
-        help='Weight decay.'
-    )
-    parser.add_argument(
-        '--do',
-        type=float,
-        default=0.1,
-        help='Dropout probability.'
     )
     parser.add_argument(
         '--log_freq',
@@ -401,6 +352,94 @@ if __name__ == "__main__":
         default=True,
         help='Restrict the time inputs in training to be only the endpoints of the time interval.'
     )
+    parser.add_argument(
+        '--train_mins',
+        type=float,
+        nargs='+',
+        default=[0.] * (1 + input_dim),
+        help='Minimum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--train_maxes',
+        type=float,
+        nargs='+',
+        default=[1.] * (1 + input_dim),
+        help='Maximum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--val_mins',
+        type=float,
+        nargs='+',
+        default=[0.] + ([0.25] * input_dim),
+        help='Minimum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--val_maxes',
+        type=float,
+        nargs='+',
+        default=[1.] + ([0.75] * input_dim),
+        help='Maximum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--data_from_lattice',
+        action='store_true',
+        default=False,
+        help='Whether to get data from a lattice (random otherwise).'
+    )
+    parser.add_argument(
+        '--n_val',
+        type=int,
+        default=10_000,
+        help='Number of samples to generate for validation. Default 10,000.'
+    )
+    
+    # ABOVE GENERALLY FIXED
+    
+    parser.add_argument(
+        '--n_train',
+        type=int,
+        default=30_000,
+        help='Number of samples to generate for training. Default 1,000.'
+    )
+    parser.add_argument(
+        '--noise_scale',
+        type=float,
+        default=1e-4,
+        help='Standard deviation of the noise to be added.'
+    )
+    
+    # ABOVE FIXED PER EXPERIMENT
+    
+    parser.add_argument(
+        '--lr',
+        type=float,
+        default=5e-2,
+        help='Learning rate.'
+    )
+    parser.add_argument(
+        '--wd',
+        type=float,
+        default=5e-5,
+        help='Weight decay.'
+    )
+    parser.add_argument(
+        '--batch_size',
+        type=int,
+        default=1_000,
+        help='Batch size for training and validation. Default 1_000.'
+    )
+    parser.add_argument(
+        '--width',
+        type=int,
+        default=1_000,
+        help='Width of the hidden layer of the neural network. Default 1000.'
+    )
+    # parser.add_argument(
+    #     '--do',
+    #     type=float,
+    #     default=0.0,
+    #     help='Dropout probability.'
+    # )
 
     args = parser.parse_args()
     validate(args)

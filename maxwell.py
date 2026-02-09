@@ -28,32 +28,19 @@ class Maxwell(PCNN):
         
         self.num_ps = len(p_array)
         
-        self.position_weight_plus = nn.ModuleList(
-            [nn.Parameter(torch.randn((self.input_dim, self.width))) for _ in range(self.num_ps)]
-        )
-        self.position_weight_minus = nn.ModuleList(
-            [nn.Parameter(torch.randn((self.input_dim, self.width))) for _ in range(self.num_ps)]
-        )
+        self.position_weight_plus = nn.Parameter(torch.randn((self.num_ps, self.input_dim, self.width)))
+        self.position_weight_minus = nn.Parameter(torch.randn((self.num_ps, self.input_dim, self.width)))
         
-        self.bias_plus = nn.ModuleList(
-            [nn.Parameter(torch.zeros((1, self.width))) for _ in range(self.num_ps)]
-        )
-        self.bias_minus = nn.ModuleList(
-            [nn.Parameter(torch.zeros((1, self.width))) for _ in range(self.num_ps)]
-        )
+        self.bias_plus = nn.Parameter(torch.zeros((self.num_ps, 1, self.width)))
+        self.bias_minus = nn.Parameter(torch.zeros((self.num_ps, 1, self.width))) 
 
-        self.output_weight_plus = nn.ModuleList(
-            [nn.Linear(width, self.output_dim) for _ in range(self.num_ps)]
-        )
-        self.output_weight_minus = nn.ModuleList(
-            [nn.Linear(width, self.output_dim) for _ in range(self.num_ps)]
-        )
+        self.output_weight_plus = nn.Parameter(torch.zeros((self.num_ps, self.width, self.output_dim)))
+        self.output_weight_minus = nn.Parameter(torch.zeros((self.num_ps, self.width, self.output_dim)))
         
-        for i in range(self.num_ps):
-            nn.init.normal_(self.position_weight_plus[i].data, 0, 1)
-            nn.init.normal_(self.position_weight_minus[i].data, 0, 1)
-            nn.init.normal_(self.output_weight_plus[i].weight, 0, 1)
-            nn.init.normal_(self.output_weight_minus[i].weight, 0, 1)
+        nn.init.normal_(self.position_weight_plus.data, 0, 1)
+        nn.init.normal_(self.position_weight_minus.data, 0, 1)
+        nn.init.normal_(self.output_weight_plus.weight, 0, 1)
+        nn.init.normal_(self.output_weight_minus.weight, 0, 1)
     
     def forward(self, t, x):
         

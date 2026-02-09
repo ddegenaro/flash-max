@@ -12,7 +12,7 @@ class Wave(PCNN):
         input_dim: int = 1,
         output_dim: int = 1,
         activation: str = 'relu',
-        dropout_val: float = 0.1
+        # dropout_val: float = 0.1
     ):
         super().__init__(
             width=width,
@@ -20,8 +20,10 @@ class Wave(PCNN):
             input_dim=input_dim,
             output_dim=output_dim,
             activation=activation,
-            dropout_val=dropout_val
+            # dropout_val=dropout_val
         )
+        
+        # print(f'Using dropout {dropout_val}')
 
         self.position_weight_plus = nn.Parameter(torch.randn((self.input_dim, self.width)))
         self.position_weight_minus = nn.Parameter(torch.randn((self.input_dim, self.width)))
@@ -42,9 +44,9 @@ class Wave(PCNN):
         pos_out_plus = x @ self.position_weight_plus
         pos_out_minus = x @ self.position_weight_minus
         
-        if self.dropout_val > 0:
-            pos_out_plus = self.dropout(pos_out_plus)
-            pos_out_minus = self.dropout(pos_out_minus)
+        # if self.dropout_val > 0:
+        #     pos_out_plus = self.dropout(pos_out_plus)
+        #     pos_out_minus = self.dropout(pos_out_minus)
 
         time_out_plus = self.c * (
             t @ torch.sqrt((self.position_weight_plus ** 2).sum(0, keepdim=True))
@@ -70,7 +72,7 @@ class WaveSimplified(PCNN):
         input_dim: int = 1,
         output_dim: int = 1,
         activation: str = 'relu',
-        dropout_val: float = 0.1
+        # dropout_val: float = 0.1
     ):
         super().__init__(
             width=width,
@@ -78,7 +80,7 @@ class WaveSimplified(PCNN):
             input_dim=input_dim,
             output_dim=output_dim,
             activation=activation,
-            dropout_val=dropout_val
+            # dropout_val=dropout_val
         )
 
         self.position_weight_plus = nn.Linear(self.input_dim, width)
