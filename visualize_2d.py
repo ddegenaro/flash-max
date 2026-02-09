@@ -32,6 +32,11 @@ def main(args):
     hparams = json.load(
         open(os.path.join(path, 'hparams.json'), 'r', encoding='utf-8')
     )
+    
+    if len(hparams['train_mins']) == 4:
+        is_3d = True
+    else:
+        is_3d = False
 
     if hparams['use_simplified']:
         model_class = WaveSimplified
@@ -79,6 +84,10 @@ def main(args):
     X, Y = torch.meshgrid(input_cols[1], input_cols[2])
     X_flat = X.flatten().to(DEVICE)
     Y_flat = Y.flatten().to(DEVICE)
+    
+    if is_3d:
+        Z_flat = torch.ones(X_flat.size()).to(DEVICE) * args.z
+        
     X_np = X.cpu().numpy()
     Y_np = Y.cpu().numpy()
     
@@ -100,14 +109,27 @@ def main(args):
         for i in range(frame_count):
             
             t = input_cols[0][i].expand(X_flat.shape[0]).unsqueeze(1).to(DEVICE)
-            pos = torch.stack((X_flat, Y_flat)).transpose(-1, 0)
+            
+            if is_3d:
+                pos = torch.stack((X_flat, Y_flat, Z_flat)).transpose(-1, 0)
+            else:
+                pos = torch.stack((X_flat, Y_flat)).transpose(-1, 0)
             
             if plot_true_sol:
-                U = u(
-                    t,
-                    pos[:, 0].unsqueeze(1),
-                    pos[:, 1].unsqueeze(1)
-                )
+                
+                if is_3d:
+                    U = u(
+                        t,
+                        pos[:, 0].unsqueeze(1),
+                        pos[:, 1].unsqueeze(1),
+                        pos[:, 2].unsqueeze(1)
+                    )
+                else:
+                    U = u(
+                        t,
+                        pos[:, 0].unsqueeze(1),
+                        pos[:, 1].unsqueeze(1)
+                    )
             else:
                 U = model(t, pos)
                 
@@ -200,15 +222,21 @@ if __name__ == "__main__":
         '--mins',
         type=float,
         nargs='+',
-        default=None,
+        default=[0., 0.25, 0.25],
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--maxes',
         type=float,
         nargs='+',
-        default=None,
+        default=[1., 0.75, 0.75],
         help='Maximum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--z',
+        type=float,
+        default=0.5,
+        help='Value to fix z to project 3D to 2D.'
     )
 
     args = parser.parse_args()

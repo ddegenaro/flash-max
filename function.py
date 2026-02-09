@@ -17,6 +17,15 @@ def r(x: Tensor, y: Tensor, z: Tensor) -> Tensor:
 #     return f(x + t) + f(y + t) + f(z + t)
 
 # radial solution
+# def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
+#     R = r(x, y, z)
+#     return (1 / R) * f(R - t)
+
+sqrt2 = torch.sqrt(torch.tensor(2.))
+sqrt3 = torch.sqrt(torch.tensor(3.))
+
+# def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
+#     return f(sqrt2 * t + x + y) + f(y + t) + f(z + t)
+    
 def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
-    R = r(x, y, z)
-    return (1 / R) * f(R - t)
+    return f(sqrt3 * t + x + y + z) + f(y + t) + f(z + t)

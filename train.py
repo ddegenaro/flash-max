@@ -65,16 +65,17 @@ def train_epoch(
     num_examples = 0
 
     val_start = time()
-    for i, (inputs, targets) in enum_val_loader:
-        
-        inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
-        
-        outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-        loss = loss_fn(outputs, targets.unsqueeze(1))
+    with torch.no_grad():
+        for i, (inputs, targets) in enum_val_loader:
+            
+            inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
+            
+            outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
+            loss = loss_fn(outputs, targets.unsqueeze(1))
 
-        total_loss_val += loss.item() * targets.shape[0]
-        
-        num_examples += targets.shape[0]
+            total_loss_val += loss.item() * targets.shape[0]
+            
+            num_examples += targets.shape[0]
     val_time = time() - val_start
 
     return (total_loss_val / num_examples), training_time, val_time
@@ -398,13 +399,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=30_000,
+        default=1_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
         '--noise_scale',
         type=float,
-        default=1e-4,
+        default=0,
         help='Standard deviation of the noise to be added.'
     )
     
@@ -419,7 +420,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--wd',
         type=float,
-        default=5e-5,
+        default=5e-3,
         help='Weight decay.'
     )
     parser.add_argument(
