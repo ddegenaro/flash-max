@@ -1,0 +1,128 @@
+from typing import Callable
+
+import torch
+from torch import nn
+
+from utils import PCNN
+from data_sampler import grid_data
+
+class Maxwell(PCNN):
+
+    def __init__(
+        self,
+        width: int = 10,
+        c: float = 1.,
+        input_dim: int = 1,
+        output_dim: int = -1,
+        activation: str = 'relu',
+        # dropout_val: float = 0.1,
+        p_array: list[list[Callable]] = [[]],
+        z_array: list[list[Callable]] = [[]]
+    ):
+        
+        assert len(p_array) == len(z_array), f'Found {len(p_array)} p vectors, but {len(z_array)} z vectors.'
+        
+        if output_dim == -1: # interpret dimension automatically
+            output_dim = len(p_array[0])
+        
+        for i, row in enumerate(p_array):
+            assert len(row) == output_dim, f'p_array: Row {i} has {len(row)} callables, but output_dim is {output_dim}.'
+            for j, func in enumerate(row):
+                assert isinstance(func, Callable), f'p_array: Row {i}, col {j} is not Callable.'
+            
+        for i, row in enumerate(z_array):
+            assert len(row) == len(z_array[0]), f'z_array: Row {i} has {len(row)} callables, but row 0 has {len(z_array[0])}.'
+            for j, func in enumerate(row):
+                assert isinstance(func, Callable), f'z_array: Row {i}, col {j} is not Callable.'
+        
+        super().__init__(
+            width=width,
+            c=c,
+            input_dim=input_dim,
+            output_dim=output_dim,
+            activation=activation,
+            # dropout_val=dropout_val
+        )
+        
+        self.p_array = p_array # shape is N rows, 6 columns
+        self.z_array = z_array # shape is N rows, M columns
+        self.N = len(self.p_array) # N: number of p vectors, arbitrary
+        self.M = len(self.z_array[0]) # M: number of z expression per p, also arbitrary
+        
+        self.Z_x = nn.Parameter(torch.randn((self.input_dim, self.width, self.N, self.M)))
+        
+        self.b = nn.Parameter(torch.zeros((1, self.width, self.N, self.M)))
+
+        self.W = nn.Parameter(torch.randn((self.width, 1, self.N, self.M)))
+        
+        nn.init.normal_(self.Z_x.data, 0, 1)
+        nn.init.normal_(self.W.data, 0, 1)
+        
+    def forward(self, t, x):
+        
+        batch_size = t.shape[0]
+        
+        # Z_t (Z_0) is implicitly defined in terms of Z_x (Z_1,2,3)
+        Z_t = torch.zeros(
+            1, self.width, self.N, self.M,
+            dtype=self.Z_x.dtype,
+            device=self.Z_x.device
+        )
+
+        # NOTE: may be able to vectorize in special cases
+        for j in range(self.N):
+            for k in range(self.M):
+                Z_t[0, :, j, k] = self.z_array[j][k](self.Z_x[:, :, j, k])
+        
+        # stack Z_t, Z_x into Z for later ref
+        Z = torch.vstack((Z_t, self.Z_x))
+        
+        # a(x * z + b), shape: [B, W, N, M]
+        activations = self.activation(torch.einsum('bi,iojk->bojk', torch.hstack((t, x)), Z) + self.b)
+        
+        # NOT SURE BEYOND THIS
+        
+        # 0 tensor of shape [B, W, O, N, M]
+        vectors = torch.zeros((batch_size, self.width, self.output_dim, self.N, self.M))
+        
+        # NOTE: may be able to vectorize in special cases
+        for j in range(self.N):
+            for k in range(self.output_dim):
+                vectors[:, :, k, :, :] = activations * self.p_array[j][k](Z)
+        
+        before_agg = torch.einsum('bwonm,wonm->bonm', vectors, self.W)  # [B, O, N, M]
+        outputs = before_agg.sum(dim=(-2, -1))  # [B, O], summed over last 2 dims
+        
+        return outputs / self.width
+        
+def main():
+    p_array = [[
+        lambda Z: Z[0, :],
+        lambda Z: Z[0, :],
+        lambda Z: Z[0, :],
+        lambda Z: Z[0, :],
+        lambda Z: Z[0, :],
+        lambda Z: Z[0, :]
+    ] for _ in range(20)]
+    
+    z_array = [[
+        lambda Z: torch.sqrt((Z ** 2).sum(0, keepdim=True)),
+        lambda Z: torch.sqrt((Z ** 2).sum(0, keepdim=True))
+    ] for _ in range(20)]
+    
+    input_dim = 3
+    
+    m = Maxwell(input_dim=input_dim, p_array=p_array, z_array=z_array, width=100)
+    
+    data = grid_data(num_samples=10, spatial_dim=input_dim, mins=[0, 0, 0, 0], maxes=[1,1,1,1], restrict_time=True)[0]
+    
+    t = data[:, 0].unsqueeze(1)
+    x = data[:, 1:]
+    
+    outs = m(t, x)
+    
+    print(outs.shape)
+    
+
+if __name__ == "__main__":
+    main()

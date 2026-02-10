@@ -19,7 +19,9 @@ def func(current_frame: int, total_frames: int) -> Any:
 def main(args):
     
     if args.experiment_num < 1:
-        experiment_num = str(max([int(x) for x in os.listdir('experiments')]))
+        experiment_num = str(max([
+            int(x) for x in os.listdir('experiments') if not x.startswith('.')
+        ]))
     else:
         experiment_num = str(args.experiment_num)
     print(f'Visualizing experiment {experiment_num}...')
@@ -171,7 +173,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '--experiment_num',
+        '--experiment_num', '-e',
         type=int,
         default=-1,
         help='Assumes there is an experiment with this number in the experiments directory. Default: most recent.'

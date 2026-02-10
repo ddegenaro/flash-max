@@ -12,7 +12,12 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from data_sampler import random_data, grid_data
 from function import u, c
+try:
+    from function import p_array
+except:
+    pass
 from wave_equation import Wave, WaveSimplified
+from maxwell_equation import Maxwell
 from utils import DEVICE
 
 torch.manual_seed(42)
@@ -145,13 +150,23 @@ def main(args):
     else:
         model_class = Wave
     
-    model = model_class(
-        width=args.width,
-        c=args.c,
-        input_dim=args.input_dim,
-        output_dim=args.output_dim,
-        # dropout_val=args.do
-    ).to(DEVICE)
+    if args.maxwell:
+        model = Maxwell(
+            width=args.width,
+            c=args.c,
+            input_dim=args.input_dim,
+            output_dim=args.output_dim,
+            # dropout_val=args.do
+            p_array=p_array
+        ).to(DEVICE)
+    else:
+        model = model_class(
+            width=args.width,
+            c=args.c,
+            input_dim=args.input_dim,
+            output_dim=args.output_dim,
+            # dropout_val=args.do
+        ).to(DEVICE)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -392,6 +407,12 @@ if __name__ == "__main__":
         type=int,
         default=10_000,
         help='Number of samples to generate for validation. Default 10,000.'
+    )
+    parser.add_argument(
+        '--maxwell',
+        action='store_true',
+        default=False,
+        help='Solve Maxwell\'s instead of Wave.'
     )
     
     # ABOVE GENERALLY FIXED
