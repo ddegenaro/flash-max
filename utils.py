@@ -18,6 +18,7 @@ class PCNN(nn.Module):
         output_dim: int = 1,
         activation: str = 'relu',
         # dropout_val: float = 0.1
+        init: str = 'normal'
     ):
         super().__init__()
         
@@ -26,6 +27,7 @@ class PCNN(nn.Module):
         self.input_dim = input_dim
         self.output_dim = output_dim
         # self.dropout_val = dropout_val
+        self.init = init
         
         activation = activation.lower()
         if activation == 'elu':

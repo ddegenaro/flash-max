@@ -49,6 +49,9 @@ if end is None:
 for i in range(start, end+1):
 
     exp_dir = os.path.join('experiments', f'{i}')
+    
+    if not os.path.exists(exp_dir):
+        continue
 
     data = json.load(open(os.path.join(exp_dir, 'hparams.json')))
     

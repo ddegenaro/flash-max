@@ -26,7 +26,7 @@ def train_epoch(
     train_loader: DataLoader,
     val_loader: DataLoader,
     model: nn.Module,
-    optimizer: torch.optim.AdamW,
+    optimizers: tuple[torch.optim.AdamW],
     loss_fn: torch.nn.MSELoss,
     epoch: int,
     epochs: int,
@@ -50,12 +50,14 @@ def train_epoch(
     for i, (inputs, targets) in enum_train_loader:
         
         inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
-
-        optimizer.zero_grad()
+        
+        for optimizer in optimizers:
+            optimizer.zero_grad()
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
         mse_loss = loss_fn(outputs, targets.unsqueeze(1))
         mse_loss.backward()
-        optimizer.step()
+        for optimizer in optimizers:
+            optimizer.step()
 
         lv = mse_loss.item()
         total_loss_train += lv
@@ -104,11 +106,15 @@ def main(args):
         restrict_time=args.restrict_time
     )
     
-    mu = train_inputs.mean(dim=0)
-    sigma = train_inputs.std(dim=0)
+    mu_inputs = train_inputs.mean(dim=0)
+    sigma_inputs = train_inputs.std(dim=0)
+    
+    mu_targets = train_targets.mean()
+    sigma_targets = train_targets.std()
     
     if args.norm_inputs:
-        train_inputs = (train_inputs - mu.unsqueeze(0)) / sigma.unsqueeze(0)
+        train_inputs = (train_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
+        train_targets = (train_targets - mu_targets) / sigma_targets
         
     if args.batch_size > args.n_train:
         batch_size = args.n_train
@@ -135,7 +141,8 @@ def main(args):
     mean_val_f = (val_targets ** 2).mean()
     
     if args.norm_inputs:
-        val_inputs = (val_inputs - mu.unsqueeze(0)) / sigma.unsqueeze(0)
+        val_inputs = (val_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
+        val_targets = (val_targets - mu_targets) / sigma_targets
 
     val_loader = DataLoader(
         TensorDataset(
@@ -165,14 +172,31 @@ def main(args):
             c=args.c,
             input_dim=args.input_dim,
             output_dim=args.output_dim,
-            # dropout_val=args.do
+            # dropout_val=args.do,
+            init=args.init
         ).to(DEVICE)
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=args.lr,
-        weight_decay=args.wd
-    )
+    if args.bilevel:
+        if args.inner_lr == args.outer_lr:
+            print(f'WARNING! Using bilevel with identical learning rates.')
+        inner_optimizer = torch.optim.AdamW(
+            [param for name, param in model.named_parameters() if 'output' not in name],
+            lr=args.inner_lr,
+            weight_decay=args.inner_wd
+        )
+        outer_optimizer = torch.optim.AdamW(
+            [param for name, param in model.named_parameters() if 'output' in name],
+            lr=args.outer_lr,
+            weight_decay=args.outer_wd
+        )
+        optimizers = (inner_optimizer, outer_optimizer)
+        
+    else:
+        optimizers = (torch.optim.AdamW(
+            model.parameters(),
+            lr=args.lr,
+            weight_decay=args.wd
+        ),)
 
     loss_fn = torch.nn.MSELoss()
     
@@ -186,8 +210,10 @@ def main(args):
 
     hparams = vars(args)
     hparams['param_count'] = sum([p.numel() for p in model.parameters()])
-    hparams['mu'] = mu.tolist()
-    hparams['sigma'] = sigma.tolist()
+    hparams['mu_inputs'] = mu_inputs.tolist()
+    hparams['sigma_inputs'] = sigma_inputs.tolist()
+    hparams['mu_targets'] = mu_targets.item()
+    hparams['sigma_targets'] = sigma_targets.item()
     json.dump(
         hparams,
         open(
@@ -223,7 +249,7 @@ def main(args):
                 train_loader=train_loader,
                 val_loader=val_loader,
                 model=model,
-                optimizer=optimizer,
+                optimizers=optimizers,
                 loss_fn=loss_fn,
                 epoch=epoch,
                 epochs=args.max_epochs,
@@ -414,6 +440,12 @@ if __name__ == "__main__":
         default=False,
         help='Solve Maxwell\'s instead of Wave.'
     )
+    parser.add_argument(
+        '--init',
+        type=str,
+        default='kaiming',
+        help='Normal or Kaiming initialization.'
+    )
     
     # ABOVE GENERALLY FIXED
     
@@ -433,15 +465,45 @@ if __name__ == "__main__":
     # ABOVE FIXED PER EXPERIMENT
     
     parser.add_argument(
+        '--inner_lr',
+        type=float,
+        default=1e-2,
+        help='Learning rate.'
+    )
+    parser.add_argument(
+        '--inner_wd',
+        type=float,
+        default=5e-6,
+        help='Weight decay.'
+    )
+    parser.add_argument(
+        '--outer_lr',
+        type=float,
+        default=1e-1,
+        help='Learning rate.'
+    )
+    parser.add_argument(
+        '--outer_wd',
+        type=float,
+        default=5e-6,
+        help='Weight decay.'
+    )
+    parser.add_argument(
+        '--bilevel',
+        action='store_true',
+        default=False,
+        help='Use different optimizers for the two layers.'
+    )
+    parser.add_argument(
         '--lr',
         type=float,
-        default=5e-2,
+        default=1e-1,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=5e-3,
+        default=5e-6,
         help='Weight decay.'
     )
     parser.add_argument(

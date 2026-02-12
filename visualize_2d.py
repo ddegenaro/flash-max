@@ -76,12 +76,15 @@ def main(args):
     ]
     
     if hparams['norm_inputs']:
-        mu = hparams['mu']
-        sigma = hparams['sigma']
+        mu_inputs = hparams['mu_inputs']
+        sigma_inputs = hparams['sigma_inputs']
         
-        assert len(mu) == len(sigma) == len(input_cols)
-        for i in range(len(mu)):
-            input_cols[i] = (input_cols[i] - mu[i]) / sigma[i]
+        mu_targets = hparams['mu_targets']
+        sigma_targets = hparams['sigma_targets']
+        
+        assert len(mu_inputs) == len(sigma_inputs) == len(input_cols)
+        for i in range(len(mu_inputs)):
+            input_cols[i] = (input_cols[i] - mu_inputs[i]) / sigma_inputs[i]
 
     X, Y = torch.meshgrid(input_cols[1], input_cols[2])
     X_flat = X.flatten().to(DEVICE)
@@ -134,6 +137,10 @@ def main(args):
                     )
             else:
                 U = model(t, pos)
+                
+                if hparams['norm_inputs']:
+                    U *= sigma_targets
+                    U += mu_targets
                 
             Us.append(U.detach().reshape(X.shape))
             

@@ -13,6 +13,7 @@ class Wave(PCNN):
         output_dim: int = 1,
         activation: str = 'relu',
         # dropout_val: float = 0.1
+        init: str = 'normal'
     ):
         super().__init__(
             width=width,
@@ -21,6 +22,7 @@ class Wave(PCNN):
             output_dim=output_dim,
             activation=activation,
             # dropout_val=dropout_val
+            init=init
         )
         
         # print(f'Using dropout {dropout_val}')
@@ -34,10 +36,28 @@ class Wave(PCNN):
         self.output_weight_plus = nn.Linear(width, self.output_dim)
         self.output_weight_minus = nn.Linear(width, self.output_dim)
         
-        nn.init.normal_(self.position_weight_plus.data, 0, 1)
-        nn.init.normal_(self.position_weight_minus.data, 0, 1)
-        nn.init.normal_(self.output_weight_plus.weight, 0, 1)
-        nn.init.normal_(self.output_weight_minus.weight, 0, 1)
+        if self.init == 'kaiming':
+            nn.init.kaiming_normal_(
+                self.position_weight_plus.data,
+                nonlinearity=activation
+            )
+            nn.init.kaiming_normal_(
+                self.position_weight_minus.data,
+                nonlinearity=activation
+            )
+            nn.init.kaiming_normal_(
+                self.output_weight_plus.weight,
+                nonlinearity=activation
+            )
+            nn.init.kaiming_normal_(
+                self.output_weight_minus.weight,
+                nonlinearity=activation
+            )
+        else:
+            nn.init.normal_(self.position_weight_plus.data, 0, 1)
+            nn.init.normal_(self.position_weight_minus.data, 0, 1)
+            nn.init.normal_(self.output_weight_plus.weight, 0, 1)
+            nn.init.normal_(self.output_weight_minus.weight, 0, 1)
 
     def forward(self, t, x):
 
