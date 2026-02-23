@@ -42,7 +42,17 @@ class PCNN(nn.Module):
             self.activation = nn.Tanh()
         elif activation == 'square':
             self.activation = lambda x: x**2
-        else:
+        elif activation == 'sine':
+            self.activation = lambda x: torch.sin(x)
+        elif activation == 'leaky':
+            self.activation = nn.LeakyReLU()
+        elif activation == 'prelu':
+            self.activation = nn.PReLU()
+        elif activation == 'cosine':
+            self.activation = lambda x: torch.cos(x)
+        elif activation == 'relu':
             self.activation = nn.ReLU()
+        else:
+            raise ValueError(f'Unknown activation: {activation}')
         
         # self.dropout = nn.Dropout(self.dropout_val)

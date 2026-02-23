@@ -314,12 +314,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--activation',
-        type=str,
-        default='relu',
-        help='Activation function to use. Default Tanh.'
-    )
-    parser.add_argument(
         '--c',
         type=float,
         default=c,
@@ -395,28 +389,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [0.] * input_dim,
+        default=[0.] + [1.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.25] + [1.] * input_dim,
+        default=[0.] + [10.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [0.25] * input_dim,
+        default=[0.] + [4.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.25] + [0.75] * input_dim,
+        default=[0.1] + [6.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -434,7 +428,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--maxwell',
         action='store_true',
-        default=False,
+        default=True,
         help='Solve Maxwell\'s instead of Wave.'
     )
     parser.add_argument(
@@ -461,6 +455,12 @@ if __name__ == "__main__":
     
     # ABOVE FIXED PER EXPERIMENT
     
+    parser.add_argument(
+        '--activation',
+        type=str,
+        default='relu',
+        help='Activation function to use. Default Tanh.'
+    )
     parser.add_argument(
         '--inner_lr',
         type=float,
