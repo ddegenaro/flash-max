@@ -13,13 +13,13 @@ def r(x: Tensor, y: Tensor, z: Tensor) -> Tensor:
     return torch.sqrt(x**2 + y**2 + z**2)
 
 # superposition of plane waves
-def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
-    return f(x + t) + f(y + t) + f(z + t)
+# def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
+#     return f(x + t) + f(y + t) + f(z + t)
 
 # radial solution
-# def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
-#     R = r(x, y, z)
-#     return (1 / R) * f(R - t)
+def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
+    R = r(x, y, z)
+    return (1 / R) * f(R - t)
 
 # sqrt2 = torch.sqrt(torch.tensor(2.))
 # sqrt3 = torch.sqrt(torch.tensor(3.))

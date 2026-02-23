@@ -6,6 +6,77 @@ from torch import nn
 from utils import PCNN
 from data_sampler import grid_data
 
+
+
+class MaxwellSimple(PCNN):
+
+    def __init__(
+        self,
+        width: int = 10,
+        c: float = 1.,
+        input_dim: int = 1,
+        output_dim: int = -1,
+        activation: str = 'relu',
+        # dropout_val: float = 0.1,
+    ):
+        
+        super().__init__(
+            width=width,
+            c=c,
+            input_dim=input_dim,
+            output_dim=output_dim,
+            activation=activation,
+            # dropout_val=dropout_val
+        )
+        
+        self.Z_x = {}
+        self.W = {}
+        
+        for key in ('1+', '1-', '2+', '2-'):
+            self.Z_x[key] = nn.Parameter(torch.zeros(3, self.width))
+            self.W[key] = nn.Parameter(torch.zeros(1, self.width))
+            nn.init.kaiming_normal_(self.Z_x[key].data)
+            nn.init.kaiming_normal_(self.W[key].data.T)
+        
+    def forward(self, t, x):
+        
+        X = torch.hstack((t, x))
+        
+        R = 0.
+        
+        for key in ('1+', '1-', '2+', '2-'):
+            Z = torch.vstack((
+                torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True)),
+                self.Z_x[key]
+            ))
+        
+            A = self.activation(X @ Z) * self.W[key]
+
+            if '1' in key:
+                P = torch.vstack((
+                    -Z[1] * Z[3],
+                    -Z[2] * Z[3],
+                    Z[0]**2 - Z[3]**2,
+                    -Z[0] * Z[2],
+                    Z[0] * Z[1],
+                    torch.zeros(self.width)
+                )).T
+            elif '2' in key:
+                P = torch.vstack((
+                    Z[1] * Z[2],
+                    -Z[0]**2 + Z[2]**2,
+                    Z[2] * Z[3],
+                    -Z[0] * Z[3],
+                    torch.zeros(self.width),
+                    Z[0] * Z[1]
+                )).T
+                
+            R += A @ P
+        
+        return R / self.width
+
+
+
 class Maxwell(PCNN):
 
     def __init__(
@@ -47,7 +118,7 @@ class Maxwell(PCNN):
         self.p_array = p_array # shape is N rows, 6 columns
         self.z_array = z_array # shape is N rows, M columns
         self.N = len(self.p_array) # N: number of p vectors, arbitrary
-        self.M = len(self.z_array[0]) # M: number of z expression per p, also arbitrary
+        self.M = len(self.z_array[0]) # M: number of z expressions per p, also arbitrary
         
         self.Z_x = nn.Parameter(torch.randn((self.input_dim, self.width, self.N, self.M)))
         
@@ -78,50 +149,75 @@ class Maxwell(PCNN):
         Z = torch.vstack((Z_t, self.Z_x))
         
         # a(x * z + b), shape: [B, W, N, M]
-        activations = self.activation(torch.einsum('bi,iojk->bojk', torch.hstack((t, x)), Z) + self.b)
+        A = self.activation(torch.einsum('bi,iojk->bojk', torch.hstack((t, x)), Z) + self.b)
+        
+        breakpoint()
         
         # NOT SURE BEYOND THIS
         
-        # 0 tensor of shape [B, W, O, N, M]
-        vectors = torch.zeros((batch_size, self.width, self.output_dim, self.N, self.M))
+        V = torch.einsum()
+        
+        # shape [B, W, O, N, M]
+        V = torch.zeros((batch_size, self.width, self.output_dim, self.N, self.M))
         
         # NOTE: may be able to vectorize in special cases
         for j in range(self.N):
-            for k in range(self.output_dim):
-                vectors[:, :, k, :, :] = activations * self.p_array[j][k](Z)
+            for d in range(self.output_dim):
+                V[:, :, d, j, :] = A * self.p_array[j][d](Z)
         
-        before_agg = torch.einsum('bwonm,wonm->bonm', vectors, self.W)  # [B, O, N, M]
+        before_agg = torch.einsum('bwonm,wnm->bonm', V, self.W) # [B, O, N, M]
         outputs = before_agg.sum(dim=(-2, -1))  # [B, O], summed over last 2 dims
         
         return outputs / self.width
         
 def main():
-    p_array = [[
-        lambda Z: Z[0, :],
-        lambda Z: Z[0, :],
-        lambda Z: Z[0, :],
-        lambda Z: Z[0, :],
-        lambda Z: Z[0, :],
-        lambda Z: Z[0, :]
-    ] for _ in range(20)]
     
-    z_array = [[
-        lambda Z: torch.sqrt((Z ** 2).sum(0, keepdim=True)),
-        lambda Z: torch.sqrt((Z ** 2).sum(0, keepdim=True))
-    ] for _ in range(20)]
+    full = False
     
-    input_dim = 3
+    if full:
+        N = 20 # number of lists of p's
+        M = 2 # number of z expressions per p
+        
+        p_array = [[
+            lambda Z: Z[0, :],
+            lambda Z: Z[0, :],
+            lambda Z: Z[0, :],
+            lambda Z: Z[0, :],
+            lambda Z: Z[0, :],
+            lambda Z: Z[0, :]
+        ] for _ in range(N)]
+        
+        z_array = [[
+            lambda Z: torch.sqrt((Z ** 2).sum(0, keepdim=True)),
+            lambda Z: -torch.sqrt((Z ** 2).sum(0, keepdim=True))
+        ] for _ in range(N)]
+        
+        input_dim = 3
+        
+        m = Maxwell(input_dim=input_dim, p_array=p_array, z_array=z_array, width=100)
+        
+        data = grid_data(num_samples=10, spatial_dim=input_dim, mins=[0, 0, 0, 0], maxes=[1,1,1,1], restrict_time=True)[0]
+        
+        t = data[:, 0].unsqueeze(1)
+        x = data[:, 1:]
+        
+        outs = m(t, x)
+        
+        print(outs.shape)
     
-    m = Maxwell(input_dim=input_dim, p_array=p_array, z_array=z_array, width=100)
-    
-    data = grid_data(num_samples=10, spatial_dim=input_dim, mins=[0, 0, 0, 0], maxes=[1,1,1,1], restrict_time=True)[0]
-    
-    t = data[:, 0].unsqueeze(1)
-    x = data[:, 1:]
-    
-    outs = m(t, x)
-    
-    print(outs.shape)
+    else:
+        input_dim = 3
+        
+        m = MaxwellSimple(input_dim=input_dim, width=100)
+        
+        data = grid_data(num_samples=10, spatial_dim=input_dim, mins=[0, 0, 0, 0], maxes=[1,1,1,1], restrict_time=True)[0]
+        
+        t = data[:, 0].unsqueeze(1)
+        x = data[:, 1:]
+        
+        outs = m(t, x)
+        
+        print(outs.shape)
     
 
 if __name__ == "__main__":

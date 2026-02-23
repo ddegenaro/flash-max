@@ -152,10 +152,7 @@ def main(args):
         shuffle=True
     )
 
-    if args.use_simplified:
-        model_class = WaveSimplified
-    else:
-        model_class = Wave
+    model_class = eval(model_class)
     
     if args.maxwell:
         model = Maxwell(
@@ -377,9 +374,9 @@ if __name__ == "__main__":
         help='Patience for atol.'
     )
     parser.add_argument(
-        '--use_simplified',
-        action='store_true',
-        default=False,
+        '--model_class',
+        type=str,
+        default='wave',
         help='Use simplified architecture.'
     )
     parser.add_argument(
@@ -398,28 +395,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] * (1 + input_dim),
+        default=[0.] + [0.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[1.] * (1 + input_dim),
+        default=[0.25] + [1.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + ([0.25] * input_dim),
+        default=[0.] + [0.25] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[1.] + ([0.75] * input_dim),
+        default=[0.25] + [0.75] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -479,13 +476,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--outer_lr',
         type=float,
-        default=1e-1,
+        default=1e-2,
         help='Learning rate.'
     )
     parser.add_argument(
         '--outer_wd',
         type=float,
-        default=5e-6,
+        default=5e-5,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -497,13 +494,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=1e-1,
+        default=2e-3,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=5e-6,
+        default=1e-4,
         help='Weight decay.'
     )
     parser.add_argument(
