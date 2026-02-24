@@ -13,7 +13,7 @@ class Wave(PCNN):
         output_dim: int = 1,
         activation: str = 'relu',
         # dropout_val: float = 0.1
-        init: str = 'normal'
+        init: str = 'kaiming'
     ):
         super().__init__(
             width=width,
@@ -93,6 +93,7 @@ class WaveSimplified(PCNN):
         output_dim: int = 1,
         activation: str = 'relu',
         # dropout_val: float = 0.1
+        init = 'kaiming'
     ):
         super().__init__(
             width=width,
@@ -101,6 +102,7 @@ class WaveSimplified(PCNN):
             output_dim=output_dim,
             activation=activation,
             # dropout_val=dropout_val
+            init=init
         )
 
         self.position_weight_plus = nn.Linear(self.input_dim, width)

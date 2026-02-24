@@ -89,8 +89,6 @@ for i in range(start, end+1):
     except:
         print('Didn\'t reach error <1%.')
         
-    # breakpoint()
-        
     min_rounded_error = df['rounded_error'].min().item()
         
     min_epoch = int(df[df['rounded_error'] == min_rounded_error].iloc[0]['epoch'])

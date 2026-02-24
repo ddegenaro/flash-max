@@ -17,7 +17,7 @@ try:
 except:
     pass
 from wave_equation import Wave, WaveSimplified
-from maxwell_equation import Maxwell
+from maxwell_equation import Maxwell, MaxwellSimple
 from utils import DEVICE
 
 torch.manual_seed(42)
@@ -54,7 +54,10 @@ def train_epoch(
         for optimizer in optimizers:
             optimizer.zero_grad()
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-        mse_loss = loss_fn(outputs, targets.unsqueeze(1))
+        if targets.shape != outputs.shape:
+            mse_loss = loss_fn(outputs, targets.unsqueeze(1))
+        else:
+            mse_loss = loss_fn(outputs, targets)
         mse_loss.backward()
         for optimizer in optimizers:
             optimizer.step()
@@ -78,9 +81,12 @@ def train_epoch(
             inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
             
             outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-            loss = loss_fn(outputs, targets.unsqueeze(1))
+            if targets.shape != outputs.shape:
+                mse_loss = loss_fn(outputs, targets.unsqueeze(1))
+            else:
+                mse_loss = loss_fn(outputs, targets)
 
-            total_loss_val += loss.item() * targets.shape[0]
+            total_loss_val += mse_loss.item() * targets.shape[0]
             
             num_examples += targets.shape[0]
     val_time = time() - val_start
@@ -109,8 +115,8 @@ def main(args):
     mu_inputs = train_inputs.mean(dim=0)
     sigma_inputs = train_inputs.std(dim=0)
     
-    mu_targets = train_targets.mean()
-    sigma_targets = train_targets.std()
+    mu_targets = train_targets.mean(dim=0)
+    sigma_targets = train_targets.std(dim=0)
     
     if args.norm_inputs:
         train_inputs = (train_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
@@ -152,26 +158,16 @@ def main(args):
         shuffle=True
     )
 
-    model_class = eval(model_class)
+    model_class = eval(args.model_class)
     
-    if args.maxwell:
-        model = Maxwell(
-            width=args.width,
-            c=args.c,
-            input_dim=args.input_dim,
-            output_dim=args.output_dim,
-            # dropout_val=args.do
-            p_array=p_array
-        ).to(DEVICE)
-    else:
-        model = model_class(
-            width=args.width,
-            c=args.c,
-            input_dim=args.input_dim,
-            output_dim=args.output_dim,
-            # dropout_val=args.do,
-            init=args.init
-        ).to(DEVICE)
+    model = model_class(
+        width=args.width,
+        c=args.c,
+        input_dim=args.input_dim,
+        output_dim=args.output_dim,
+        # dropout_val=args.do,
+        init=args.init
+    ).to(DEVICE)
 
     if args.bilevel:
         if args.inner_lr == args.outer_lr:
@@ -209,8 +205,8 @@ def main(args):
     hparams['param_count'] = sum([p.numel() for p in model.parameters()])
     hparams['mu_inputs'] = mu_inputs.tolist()
     hparams['sigma_inputs'] = sigma_inputs.tolist()
-    hparams['mu_targets'] = mu_targets.item()
-    hparams['sigma_targets'] = sigma_targets.item()
+    hparams['mu_targets'] = mu_targets.tolist()
+    hparams['sigma_targets'] = sigma_targets.tolist()
     json.dump(
         hparams,
         open(
@@ -304,8 +300,8 @@ def validate(args):
     assert args.log_freq > 0
     assert args.tol > 0
     for i in range(len(args.val_mins)):
-        assert args.train_mins[i] < args.train_maxes[i]
-        assert args.val_mins[i] < args.val_maxes[i]
+        assert args.train_mins[i] <= args.train_maxes[i]
+        assert args.val_mins[i] <= args.val_maxes[i]
 
 if __name__ == "__main__":
 
@@ -370,8 +366,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model_class',
         type=str,
-        default='wave',
-        help='Use simplified architecture.'
+        default='MaxwellSimple',
+        help='Type of model to use.'
     )
     parser.add_argument(
         '--norm_inputs',
@@ -494,13 +490,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=2e-3,
+        default=5e-3,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=1e-4,
+        default=5e-5,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -512,7 +508,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1_000,
+        default=2_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     # parser.add_argument(

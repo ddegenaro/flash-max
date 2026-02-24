@@ -9,8 +9,11 @@ c: float = 1.
 #     return torch.exp(-5. * s**2) / 5.
 
 # coordinate conversion
-# def r(x: Tensor, y: Tensor, z: Tensor) -> Tensor:
-#     return torch.sqrt(x**2 + y**2 + z**2)
+def r(x: Tensor, y: Tensor, z: Tensor) -> Tensor:
+    return torch.sqrt(x**2 + y**2 + z**2)
+
+def rho(x: Tensor, y: Tensor) -> Tensor:
+    return torch.sqrt(x**2 + y**2)
 
 # superposition of plane waves
 # def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
@@ -31,4 +34,18 @@ c: float = 1.
 #     return f(sqrt3 * t + x + y + z) + f(y + t) + f(z + t)
 
 def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
-    pass
+    
+    R = r(x, y, z)
+    Rho = rho(x, y)
+    
+    f1 = (t - R) / (R * Rho)
+    
+    D_x = f1 * z * x / R
+    D_y = f1 * z * y / R
+    D_z = f1 * -Rho**2 / R
+    
+    B_x = f1 * -y
+    B_y = f1 * x
+    B_z = torch.zeros(x.size())
+    
+    return torch.vstack((D_x, D_y, D_z, B_x, B_y, B_z))

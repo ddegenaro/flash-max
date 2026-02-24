@@ -18,6 +18,7 @@ class MaxwellSimple(PCNN):
         output_dim: int = -1,
         activation: str = 'relu',
         # dropout_val: float = 0.1,
+        init = 'kaiming'
     ):
         
         super().__init__(
@@ -27,10 +28,11 @@ class MaxwellSimple(PCNN):
             output_dim=output_dim,
             activation=activation,
             # dropout_val=dropout_val
+            init=init
         )
         
-        self.Z_x = {}
-        self.W = {}
+        self.Z_x = nn.ParameterDict()
+        self.W = nn.ParameterDict()
         
         for key in ('1+', '1-', '2+', '2-'):
             self.Z_x[key] = nn.Parameter(torch.zeros(3, self.width))
@@ -59,7 +61,7 @@ class MaxwellSimple(PCNN):
                     Z[0]**2 - Z[3]**2,
                     -Z[0] * Z[2],
                     Z[0] * Z[1],
-                    torch.zeros(self.width)
+                    torch.zeros(self.width, device=Z.device)
                 )).T
             elif '2' in key:
                 P = torch.vstack((
@@ -67,7 +69,7 @@ class MaxwellSimple(PCNN):
                     -Z[0]**2 + Z[2]**2,
                     Z[2] * Z[3],
                     -Z[0] * Z[3],
-                    torch.zeros(self.width),
+                    torch.zeros(self.width, device=Z.device),
                     Z[0] * Z[1]
                 )).T
                 
@@ -87,6 +89,7 @@ class Maxwell(PCNN):
         output_dim: int = -1,
         activation: str = 'relu',
         # dropout_val: float = 0.1,
+        init = 'kaiming',
         p_array: list[list[Callable]] = [[]],
         z_array: list[list[Callable]] = [[]]
     ):
@@ -113,6 +116,7 @@ class Maxwell(PCNN):
             output_dim=output_dim,
             activation=activation,
             # dropout_val=dropout_val
+            init=init
         )
         
         self.p_array = p_array # shape is N rows, 6 columns
@@ -150,8 +154,6 @@ class Maxwell(PCNN):
         
         # a(x * z + b), shape: [B, W, N, M]
         A = self.activation(torch.einsum('bi,iojk->bojk', torch.hstack((t, x)), Z) + self.b)
-        
-        breakpoint()
         
         # NOT SURE BEYOND THIS
         
