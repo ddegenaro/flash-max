@@ -18,6 +18,7 @@ except:
     pass
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
+from basic_shallow import Simple
 from utils import DEVICE
 
 torch.manual_seed(42)
@@ -120,7 +121,7 @@ def main(args):
     
     if args.norm_inputs:
         train_inputs = (train_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
-        train_targets = (train_targets - mu_targets) / sigma_targets
+        train_targets = (train_targets - mu_targets.unsqueeze(0)) / sigma_targets.unsqueeze(0)
         
     if args.batch_size > args.n_train:
         batch_size = args.n_train
@@ -148,7 +149,7 @@ def main(args):
     
     if args.norm_inputs:
         val_inputs = (val_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
-        val_targets = (val_targets - mu_targets) / sigma_targets
+        val_targets = (val_targets - mu_targets.unsqueeze(0)) / sigma_targets.unsqueeze(0)
 
     val_loader = DataLoader(
         TensorDataset(
@@ -385,28 +386,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [1.] * input_dim,
+        default=[0.] + [3.9] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [10.] * input_dim,
+        default=[0.] + [6.1] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [4.] * input_dim,
+        default=[0.] + [4.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [6.] * input_dim,
+        default=[0.1] + [6.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -420,12 +421,6 @@ if __name__ == "__main__":
         type=int,
         default=10_000,
         help='Number of samples to generate for validation. Default 10,000.'
-    )
-    parser.add_argument(
-        '--maxwell',
-        action='store_true',
-        default=True,
-        help='Solve Maxwell\'s instead of Wave.'
     )
     parser.add_argument(
         '--init',
@@ -454,7 +449,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--activation',
         type=str,
-        default='relu',
+        default='cosine',
         help='Activation function to use. Default Tanh.'
     )
     parser.add_argument(
@@ -508,7 +503,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=2_000,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     # parser.add_argument(

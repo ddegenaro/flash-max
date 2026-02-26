@@ -1,6 +1,8 @@
 __pycache__/
 scratch.ipynb
-experiments/
+experiments/*/model.pth
+experiments/*/*.tsv
+experiments/*/*.gif
 NOTE_TO_SELF.TXT
 xin_code/
 markus_code/

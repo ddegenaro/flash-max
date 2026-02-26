@@ -1,0 +1,29 @@
+{
+    "n_train": 100000,
+    "n_val": 10000,
+    "batch_size": 1000,
+    "width": 1000,
+    "c": 1.0,
+    "input_dim": 2,
+    "mins": [
+        0.0,
+        -5.0,
+        -5.0
+    ],
+    "maxes": [
+        2.0,
+        5.0,
+        5.0
+    ],
+    "noise_scale": 0.0001,
+    "output_dim": 1,
+    "epochs": 1000,
+    "lr": 0.01,
+    "wd": 0.001,
+    "log_freq": 100,
+    "verbose": false,
+    "tol": 8e-05,
+    "atol": 0.0001,
+    "k": 10,
+    "param_count": 5001
+}

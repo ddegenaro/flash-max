@@ -1,0 +1,42 @@
+{
+    "n_train": 100000,
+    "n_val": 100000,
+    "batch_size": 1000,
+    "width": 100,
+    "activation": "tanh",
+    "c": 1.0,
+    "input_dim": 2,
+    "mins": [
+        0.0,
+        -2.0,
+        -2.0
+    ],
+    "maxes": [
+        1.0,
+        2.0,
+        2.0
+    ],
+    "noise_scale": 0.0001,
+    "output_dim": 1,
+    "max_epochs": 10000,
+    "lr": 0.0001,
+    "wd": 1e-06,
+    "log_freq": 100,
+    "verbose": false,
+    "tol": 8e-08,
+    "atol": 1e-08,
+    "k": 10,
+    "use_simplified": true,
+    "norm_inputs": false,
+    "param_count": 401,
+    "mu": [
+        0.5010111927986145,
+        0.001164503046311438,
+        -0.00428467383608222
+    ],
+    "sigma": [
+        0.2889558970928192,
+        1.1541647911071777,
+        1.1552284955978394
+    ]
+}

@@ -1,0 +1,60 @@
+{
+    "activation": "relu",
+    "c": 1.0,
+    "input_dim": 3,
+    "output_dim": 1,
+    "max_epochs": 10000,
+    "log_freq": 100,
+    "verbose": false,
+    "tol": 1e-08,
+    "atol": 1e-08,
+    "k": 10,
+    "use_simplified": false,
+    "norm_inputs": false,
+    "restrict_time": true,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.25,
+        0.25,
+        0.25
+    ],
+    "val_maxes": [
+        1.0,
+        0.75,
+        0.75,
+        0.75
+    ],
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "n_train": 30000,
+    "noise_scale": 0,
+    "lr": 0.05,
+    "wd": 5e-06,
+    "batch_size": 1000,
+    "width": 1000,
+    "param_count": 10002,
+    "mu": [
+        0.5,
+        0.49982357025146484,
+        0.501883864402771,
+        0.5020413994789124
+    ],
+    "sigma": [
+        0.5000083446502686,
+        0.2891123592853546,
+        0.2889922559261322,
+        0.2879364490509033
+    ]
+}

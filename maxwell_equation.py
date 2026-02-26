@@ -33,10 +33,12 @@ class MaxwellSimple(PCNN):
         
         self.Z_x = nn.ParameterDict()
         self.W = nn.ParameterDict()
+        self.b = nn.ParameterDict()
         
         for key in ('1+', '1-', '2+', '2-'):
             self.Z_x[key] = nn.Parameter(torch.zeros(3, self.width))
             self.W[key] = nn.Parameter(torch.zeros(1, self.width))
+            self.b[key] = nn.Parameter(torch.zeros(1, self.width))
             nn.init.kaiming_normal_(self.Z_x[key].data)
             nn.init.kaiming_normal_(self.W[key].data.T)
         
@@ -52,7 +54,7 @@ class MaxwellSimple(PCNN):
                 self.Z_x[key]
             ))
         
-            A = self.activation(X @ Z) * self.W[key]
+            A = self.activation(X @ Z + self.b[key]) * self.W[key]
 
             if '1' in key:
                 P = torch.vstack((
