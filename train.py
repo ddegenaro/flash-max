@@ -386,28 +386,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [3.9] * input_dim,
+        default=[0.] + [1.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [6.1] * input_dim,
+        default=[0.] + [10.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [4.0] * input_dim,
+        default=[0.] + [4.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [6.0] * input_dim,
+        default=[0.1] + [6.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -503,7 +503,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1_000,
+        default=2_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     # parser.add_argument(
