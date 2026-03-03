@@ -46,6 +46,10 @@ def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
     
     B_x = f1 * -y
     B_y = f1 * x
-    B_z = torch.zeros(x.size())
+    B_z = torch.zeros(x.size()).to(x.device)
     
     return torch.vstack((D_x, D_y, D_z, B_x, B_y, B_z))
+
+# def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
+    
+#     return torch.exp(-20 * (x**2 + y**2 + z**2))

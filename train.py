@@ -19,7 +19,7 @@ except:
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
 from basic_shallow import Simple
-from utils import DEVICE
+from utils import DEVICE, PCNN
 
 torch.manual_seed(42)
 
@@ -52,6 +52,8 @@ def train_epoch(
         
         inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
         
+        breakpoint()
+        
         for optimizer in optimizers:
             optimizer.zero_grad()
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
@@ -78,6 +80,8 @@ def train_epoch(
     val_start = time()
     with torch.no_grad():
         for i, (inputs, targets) in enum_val_loader:
+            
+            # breakpoint()
             
             inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
             
@@ -161,7 +165,7 @@ def main(args):
 
     model_class = eval(args.model_class)
     
-    model = model_class(
+    model: PCNN = model_class(
         width=args.width,
         c=args.c,
         input_dim=args.input_dim,
@@ -208,6 +212,7 @@ def main(args):
     hparams['sigma_inputs'] = sigma_inputs.tolist()
     hparams['mu_targets'] = mu_targets.tolist()
     hparams['sigma_targets'] = sigma_targets.tolist()
+    hparams['output_dim'] = model.output_dim
     json.dump(
         hparams,
         open(
@@ -386,14 +391,14 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [1.] * input_dim,
+        default=[0.] + [3.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [10.] * input_dim,
+        default=[0.] + [7.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -407,7 +412,7 @@ if __name__ == "__main__":
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [6.] * input_dim,
+        default=[1.] + [6.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -503,7 +508,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=2_000,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     # parser.add_argument(
