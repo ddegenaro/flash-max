@@ -1,0 +1,20 @@
+MaxwellSimple(
+  (Z_x): ParameterDict(
+      (1+): Parameter containing: [torch.mps.FloatTensor of size 3x1000]
+      (1-): Parameter containing: [torch.mps.FloatTensor of size 3x1000]
+      (2+): Parameter containing: [torch.mps.FloatTensor of size 3x1000]
+      (2-): Parameter containing: [torch.mps.FloatTensor of size 3x1000]
+  )
+  (W): ParameterDict(
+      (1+): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+      (1-): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+      (2+): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+      (2-): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+  )
+  (b): ParameterDict(
+      (1+): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+      (1-): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+      (2+): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+      (2-): Parameter containing: [torch.mps.FloatTensor of size 1x1000]
+  )
+)

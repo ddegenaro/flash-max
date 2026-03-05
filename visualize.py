@@ -190,14 +190,6 @@ def main(args):
                         else:
                             U_batch = u(t_batch.squeeze(-1), pos_batch[:, 0], pos_batch[:, 1]).T
                     else:
-                        if batch_idx == 0:
-                            tp = torch.tensor([[0.5]]).to(DEVICE)
-                            pp = torch.tensor([[5.0, 5.0, 5.0]]).to(DEVICE)
-                            print('\n')
-                            # print(f'coords: ({tp[0,0].item():.4f}, {pp[0,0].item():.4f}, {pp[0,1].item():.4f}, {pp[0,2].item():.4f})')
-                            # print(f'pred:', [round(x, 4) for x in model(tp, pp, True)[0].tolist()])
-                            print(model.activation)
-                            breakpoint()
                         U_batch = model(t_batch, pos_batch)
                     
                     U_batch = U_batch.detach().cpu().reshape(-1, hparams['output_dim'])
@@ -208,29 +200,10 @@ def main(args):
                             
                     Us['E'][i][start_idx:end_idx] = U_batch[:, 0:3]
                     Us['B'][i][start_idx:end_idx] = U_batch[:, 3:6]
-                    
-                    # if i % 10 == 0:
-                        # p_idx = int(555)
-                        # tp = t_batch[p_idx].item()
-                        # pp = pos_batch[p_idx].tolist()
-                        # if plot_true_sol:
-                        #     print(f'coords: ({tp:.1f}, {pp[0]:.1f}, {pp[1]:.1f}, {pp[2]:.1f}), true:', U_batch[0])
-                        # else:
-                        #     print(f'coords: ({tp:.1f}, {pp[0]:.1f}, {pp[1]:.1f}, {pp[2]:.1f}), pred:', U_batch[0])
-                        # print(model(t_batch[:1], pos_batch[:1]))
-                        # print(model(torch.tensor([[t_batch[0,0].item()]]).to(DEVICE), torch.tensor([[pos_batch[0,0].item(), pos_batch[0,1].item(), pos_batch[0,2].item()]]).to(DEVICE)))
                             
                     del U_batch, pos_batch, t_batch
             
-            # print("True solution frame 0 spatial variation:")
-            # print(f"E[0] min={Us['E'][0].min():.6f}, max={Us['E'][0].max():.6f}")
-            # print("\nModel predictions frame 0 spatial variation:")
-            # (same for model Us)
-            
             # frame loop done, all Us computed
-            
-            print(Us['E'][0, :3])
-            print(Us['E'][1, :3])
             
             print('Writing frames...')
             

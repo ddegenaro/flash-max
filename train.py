@@ -92,17 +92,6 @@ def train_epoch(
             
             num_examples += targets.shape[0]
     val_time = time() - val_start
-    
-    if epoch % 40 == 0:
-        tp = torch.tensor([[0.5]]).to(DEVICE)
-        pp = torch.tensor([[5.0, 5.0, 5.0]]).to(DEVICE)
-        print('\n')
-        # print(f'coords: ({tp[0,0].item():.4f}, {pp[0,0].item():.4f}, {pp[0,1].item():.4f}, {pp[0,2].item():.4f})')
-        # print(f'pred:', [round(x, 4) for x in model(tp, pp, True)[0].tolist()])
-        print(model.activation)
-        # print(f'true:', [round(x, 4) for x in u(tp[0,0], pp[0,0], pp[0,1], pp[0,2]).T[0].tolist()])
-        # for name, param in model.named_parameters():
-        #     print(f'{name}: mean={param.mean():.6f}, std={param.std():.6f}, shape={param.shape}')
 
     return (total_loss_val / num_examples), training_time, val_time
 
