@@ -52,13 +52,12 @@ def train_epoch(
         
         inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
         
-        breakpoint()
-        
         for optimizer in optimizers:
             optimizer.zero_grad()
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
         if targets.shape != outputs.shape:
             mse_loss = loss_fn(outputs, targets.unsqueeze(1))
+            print('WARN: loss')
         else:
             mse_loss = loss_fn(outputs, targets)
         mse_loss.backward()
@@ -81,8 +80,6 @@ def train_epoch(
     with torch.no_grad():
         for i, (inputs, targets) in enum_val_loader:
             
-            # breakpoint()
-            
             inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
             
             outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
@@ -95,6 +92,17 @@ def train_epoch(
             
             num_examples += targets.shape[0]
     val_time = time() - val_start
+    
+    if epoch % 40 == 0:
+        tp = torch.tensor([[0.5]]).to(DEVICE)
+        pp = torch.tensor([[5.0, 5.0, 5.0]]).to(DEVICE)
+        print('\n')
+        # print(f'coords: ({tp[0,0].item():.4f}, {pp[0,0].item():.4f}, {pp[0,1].item():.4f}, {pp[0,2].item():.4f})')
+        # print(f'pred:', [round(x, 4) for x in model(tp, pp, True)[0].tolist()])
+        print(model.activation)
+        # print(f'true:', [round(x, 4) for x in u(tp[0,0], pp[0,0], pp[0,1], pp[0,2]).T[0].tolist()])
+        # for name, param in model.named_parameters():
+        #     print(f'{name}: mean={param.mean():.6f}, std={param.std():.6f}, shape={param.shape}')
 
     return (total_loss_val / num_examples), training_time, val_time
 
@@ -170,6 +178,7 @@ def main(args):
         c=args.c,
         input_dim=args.input_dim,
         output_dim=args.output_dim,
+        activation=args.activation,
         # dropout_val=args.do,
         init=args.init
     ).to(DEVICE)
@@ -229,6 +238,14 @@ def main(args):
         'w+', encoding='utf-8'
     ) as fp:
         fp.write('epoch\tmse\ttraining_time\tval_time\trel_l2_error\n')
+        
+    with open(
+        os.path.join('experiments', this_experiment, 'model_architecture.txt'),
+        'w+', encoding='utf-8'
+    ) as fp:
+        fp.write(model.__str__().strip())
+        # for name, param in model.named_parameters():
+        #     fp.write('\n' + name + ' ' + str(param.shape))
             
     best_loss = torch.inf
     k = args.k
@@ -267,6 +284,7 @@ def main(args):
                     model.state_dict(),
                     os.path.join('experiments', this_experiment, 'model.pth')
                 )
+                # print(f'Epoch {epoch+1}: saving model for mse {mse:.4f}')
                 
                 best_loss = mse
 
@@ -502,7 +520,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=1_000,
+        default=100,
         help='Batch size for training and validation. Default 1_000.'
     )
     parser.add_argument(

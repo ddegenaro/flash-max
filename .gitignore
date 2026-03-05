@@ -3,7 +3,6 @@ scratch.ipynb
 experiments/*/model.pth
 experiments/*/*.tsv
 experiments/*/*.gif
-NOTE_TO_SELF.TXT
 xin_code/
 markus_code/
 .DS_Store

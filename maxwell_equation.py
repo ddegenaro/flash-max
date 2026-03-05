@@ -3,10 +3,8 @@ from typing import Callable
 import torch
 from torch import nn
 
-from utils import PCNN
+from utils import PCNN, tensor_round
 from data_sampler import grid_data
-
-
 
 class MaxwellSimple(PCNN):
 
@@ -44,19 +42,27 @@ class MaxwellSimple(PCNN):
             nn.init.kaiming_normal_(self.Z_x[key].data)
             nn.init.kaiming_normal_(self.W[key].data.T)
         
-    def forward(self, t, x):
+    def forward(self, t, x, log=False):
         
         X = torch.hstack((t, x))
+        
+        if log:
+            print('X', tensor_round(X[0]))
         
         R = 0.
         
         for key in ('1+', '1-', '2+', '2-'):
+            
             Z = torch.vstack((
                 torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True)),
                 self.Z_x[key]
             ))
         
             A = self.activation(X @ Z + self.b[key]) * self.W[key]
+            
+            if log:
+                print(key, 'Z', tensor_round(Z[:, 0]))
+                print(key, 'A', tensor_round(A[:, 0][:4]), '...')
 
             if '1' in key:
                 P = torch.vstack((
@@ -78,6 +84,10 @@ class MaxwellSimple(PCNN):
                 )).T
                 
             R += A @ P
+            
+            if log:
+                # print(key, 'P', P[0])
+                print(key, 'R',tensor_round(R[0]))
         
         return R / self.width
 

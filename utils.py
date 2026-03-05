@@ -8,6 +8,9 @@ elif torch.cuda.is_available():
 else:
     DEVICE = 'cpu'
     
+def tensor_round(tensor: torch.Tensor, prec: int = 4):
+    return [round(x.item(), prec) for x in tensor]
+    
 class PCNN(nn.Module):
     
     def __init__(
