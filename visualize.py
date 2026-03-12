@@ -60,25 +60,6 @@ def main(args):
         map_location=DEVICE
     ))
     model.train()
-    
-    # tp = torch.tensor([[0.5]]).to(DEVICE)
-    # pp = torch.tensor([[5.0, 5.0, 5.0]]).to(DEVICE)
-    # print('loaded model pred:', model(tp, pp))
-    # print('true:             ', u(tp[0,0], pp[0,0], pp[0,1], pp[0,2]).T)
-    # breakpoint()
-    # print(hparams['activation'], '----', model.activation)
-    # arch_path = os.path.join(path, 'model_architecture.txt')
-    # if os.path.exists(arch_path):
-    #     model_str = model.__str__().strip()
-    #     # for name, param in model.named_parameters():
-    #     #     model_str += '\n' + name + ' ' + str(param.shape)
-    #     file_contents = open(arch_path, 'r', encoding='utf-8').read().strip()
-    #     sep = '\n' + '-' * 20
-    #     assert model_str == file_contents, sep + '\n' + model_str + sep + '\n' + file_contents + sep
-    # else:
-    #     print(f'Warning: no model architecture file found. Assuming correct architecture.')
-    # for name, param in model.named_parameters():
-    #     print(f'{name}: mean={param.mean():.6f}, std={param.std():.6f}, shape={param.shape}')
 
     mins = args.mins if args.mins is not None else hparams['val_mins']
     maxes = args.maxes if args.maxes is not None else hparams['val_maxes']
@@ -142,6 +123,9 @@ def main(args):
     
     with torch.no_grad():
         for plot_true_sol in (True, False):
+            
+            if args.trueonly and plot_true_sol == False:
+                continue
             
             if double_quiver:
                 fname_E = f'animation_true_E.{args.ext}' if plot_true_sol else f'animation_E.{args.ext}'
@@ -344,6 +328,12 @@ if __name__ == "__main__":
         type=float,
         default=None,
         help='Value to fix z to project 3D to 2D.'
+    )
+    parser.add_argument(
+        '--trueonly',
+        action='store_true',
+        default=False,
+        help='Plot true solution only.'
     )
 
     args = parser.parse_args()

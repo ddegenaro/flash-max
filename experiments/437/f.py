@@ -1,5 +1,6 @@
 import torch
 from sympy import *
+import numpy as np
 
 c = 1.0
 c_sq = c**2
@@ -76,34 +77,30 @@ B_y = lambdify(args, B_y_u + B_y_v, 'numpy')
 B_z = lambdify(args, B_z_u + B_z_v, 'numpy')
 
 def u(t, x, y, z):
-    t = t.cpu().numpy().reshape(-1, 1)
-    x = x.cpu().numpy().reshape(-1, 1)
-    y = y.cpu().numpy().reshape(-1, 1)
-    z = z.cpu().numpy().reshape(-1, 1)
+    t_np = t.cpu().numpy().reshape(-1, 1)
+    x_np = x.cpu().numpy().reshape(-1, 1)
+    y_np = y.cpu().numpy().reshape(-1, 1)
+    z_np = z.cpu().numpy().reshape(-1, 1)
     
     result = torch.hstack((
-        torch.tensor(E_x(t, x, y, z)),
-        torch.tensor(E_y(t, x, y, z)),
-        torch.tensor(E_z(t, x, y, z)),
-        torch.tensor(B_x(t, x, y, z)),
-        torch.tensor(B_y(t, x, y, z)),
-        torch.tensor(B_z(t, x, y, z))
+        E_x(t, x, y, z),
+        E_y(t, x, y, z),
+        E_z(t, x, y, z),
+        B_x(t, x, y, z),
+        B_y(t, x, y, z),
+        B_z(t, x, y, z)
     ))
     
     return result
 
 if __name__ == '__main__':
     bs = 32
-    
-    t_arr = torch.zeros((bs, 1))
-    x_arr = torch.randn((bs, 1)) + 1
-    y_arr = torch.randn((bs, 1)) + 1
-    z_arr = torch.randn((bs, 1)) + 1
-    
-    result = u(t_arr, x_arr, y_arr, z_arr)
-    
-    for i, name in zip(range(6), ('E_x', 'E_y', 'E_z', 'B_x', 'B_y', 'B_z')):
-        print(f'{name},', f'mean: {result[:, i].mean().item():.4f}', result[:, i].shape)
+    result = u(
+        torch.ones((bs, 1)),
+        torch.ones((bs, 1)),
+        torch.ones((bs, 1)),
+        torch.ones((bs, 1))
+    )
     
     good = torch.Size([bs, 6])
     

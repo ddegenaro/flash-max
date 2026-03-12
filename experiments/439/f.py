@@ -1,5 +1,6 @@
 import torch
 from sympy import *
+import numpy as np
 
 c = 1.0
 c_sq = c**2
@@ -94,16 +95,12 @@ def u(t, x, y, z):
 
 if __name__ == '__main__':
     bs = 32
-    
-    t_arr = torch.zeros((bs, 1))
-    x_arr = torch.randn((bs, 1)) + 1
-    y_arr = torch.randn((bs, 1)) + 1
-    z_arr = torch.randn((bs, 1)) + 1
-    
-    result = u(t_arr, x_arr, y_arr, z_arr)
-    
-    for i, name in zip(range(6), ('E_x', 'E_y', 'E_z', 'B_x', 'B_y', 'B_z')):
-        print(f'{name},', f'mean: {result[:, i].mean().item():.4f}', result[:, i].shape)
+    result = u(
+        torch.ones((bs, 1)),
+        torch.ones((bs, 1)),
+        torch.ones((bs, 1)),
+        torch.ones((bs, 1))
+    )
     
     good = torch.Size([bs, 6])
     

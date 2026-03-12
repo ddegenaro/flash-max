@@ -18,7 +18,6 @@ except:
     pass
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
-from basic_shallow import Simple
 from utils import DEVICE, PCNN
 
 torch.manual_seed(42)
@@ -114,6 +113,9 @@ def main(args):
         restrict_time=args.restrict_time
     )
     
+    if train_inputs.shape[0] != train_targets.shape[0]:
+        train_targets = train_targets.reshape(train_inputs.shape[0], -1)
+    
     mu_inputs = train_inputs.mean(dim=0)
     sigma_inputs = train_inputs.std(dim=0)
     
@@ -145,6 +147,9 @@ def main(args):
         f=u,
         noise_scale=args.noise_scale
     ) # restrict_time is False by default, desirable here.
+    
+    if val_inputs.shape[0] != val_targets.shape[0]:
+        val_targets = val_targets.reshape(val_inputs.shape[0], -1)
     
     mean_val_f = (val_targets ** 2).mean()
     
@@ -228,11 +233,11 @@ def main(args):
     ) as fp:
         fp.write('epoch\tmse\ttraining_time\tval_time\trel_l2_error\n')
         
-    with open(
-        os.path.join('experiments', this_experiment, 'model_architecture.txt'),
-        'w+', encoding='utf-8'
-    ) as fp:
-        fp.write(model.__str__().strip())
+    # with open(
+    #     os.path.join('experiments', this_experiment, 'model_architecture.txt'),
+    #     'w+', encoding='utf-8'
+    # ) as fp:
+    #     fp.write(model.__str__().strip())
         # for name, param in model.named_parameters():
         #     fp.write('\n' + name + ' ' + str(param.shape))
             
@@ -398,28 +403,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [3.] * input_dim,
+        default=[0.] + [0.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [7.] * input_dim,
+        default=[0.] + [1.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [4.] * input_dim,
+        default=[0.] + [0.] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[1.] + [6.] * input_dim,
+        default=[1.] + [1.] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
