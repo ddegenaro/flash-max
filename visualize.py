@@ -130,17 +130,17 @@ def main(args):
             if double_quiver:
                 fname_E = f'animation_true_E.{args.ext}' if plot_true_sol else f'animation_E.{args.ext}'
                 fp_E = os.path.join(path, fname_E)
-                if os.path.exists(fp_E):
+                if os.path.exists(fp_E) and not args.overwrite:
                     continue
                 
                 fname_B = f'animation_true_B.{args.ext}' if plot_true_sol else f'animation_B.{args.ext}'
                 fp_B = os.path.join(path, fname_B)
-                if os.path.exists(fp_B):
+                if os.path.exists(fp_B) and not args.overwrite:
                     continue
             else:
                 fname = f'animation_true.{args.ext}' if plot_true_sol else f'animation.{args.ext}'
                 fp = os.path.join(path, fname)
-                if os.path.exists(fp):
+                if os.path.exists(fp) and not args.overwrite:
                     continue
                 
             frame_count = len(input_cols[0])
@@ -210,8 +210,10 @@ def main(args):
                     ax.clear()
                     ax.quiver(
                         X_np, Y_np, Z_np,
-                        Us['E'][j, :, 0].reshape(X_shape), Us['E'][j, : , 1].reshape(X_shape), Us['E'][j, :, 2].reshape(X_shape),
-                        length=0.1, normalize=True, arrow_length_ratio=0.5,
+                        Us['E'][j, :, 0].reshape(X_shape),
+                        Us['E'][j, : , 1].reshape(X_shape),
+                        Us['E'][j, :, 2].reshape(X_shape),
+                        length=args.length, normalize=True, arrow_length_ratio=args.alr,
                         colors=E_colors
                     )
                     writer.grab_frame()
@@ -226,8 +228,10 @@ def main(args):
                     ax.clear()
                     ax.quiver(
                         X_np, Y_np, Z_np,
-                        Us['B'][j, :, 0].reshape(X_shape), Us['B'][j, : , 1].reshape(X_shape), Us['B'][j, :, 2].reshape(X_shape),
-                        length=0.1, normalize=True, arrow_length_ratio=0.5,
+                        Us['B'][j, :, 0].reshape(X_shape),
+                        Us['B'][j, : , 1].reshape(X_shape),
+                        Us['B'][j, :, 2].reshape(X_shape),
+                        length=args.length, normalize=True, arrow_length_ratio=args.alr,
                         colors=B_colors
                     )
                     writer.grab_frame()
@@ -334,6 +338,24 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Plot true solution only.'
+    )
+    parser.add_argument(
+        '--length',
+        type=float,
+        default=0.05,
+        help='Quiver plot arrow length.'
+    )
+    parser.add_argument(
+        '--alr',
+        type=float,
+        default=0.3,
+        help='Quiver plot arrow length ratio.'
+    )
+    parser.add_argument(
+        '--overwrite',
+        action='store_true',
+        default=True,
+        help='Overwrite existing viz.'
     )
 
     args = parser.parse_args()
