@@ -36,5 +36,11 @@ for key in data1:
 for key in data2:
     if key not in data1:
         print(f'{key} in {e} but not in {s}.')
-        
+
+f1 = open(os.path.join('experiments', str(s), 'f.py')).read().strip()
+f2 = open(os.path.join('experiments', str(e), 'f.py')).read().strip()
+
+if f1 != f2:
+    print('f.py appears different.')
+
 print('-' * 80)

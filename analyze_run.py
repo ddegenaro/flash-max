@@ -37,14 +37,25 @@ parser.add_argument(
     default=None,
     help='Kind of function to restrict to.'
 )
+parser.add_argument(
+    '--just', '-j',
+    type=int,
+    default=None,
+    help='Just this experiment.'
+)
 
 args = parser.parse_args()
 
 start = args.start
 end = args.end
+just = args.just
 
 if end is None:
     end = start
+    
+if just is not None:
+    start = just
+    end = just
 
 for i in range(start, end+1):
 

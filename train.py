@@ -295,6 +295,17 @@ def main(args):
                     ):
                         print(f'Stopping early at epoch {epoch+1} (last k losses: {last_k_losses}).')
                         break
+                    else:
+                        flags = []
+                        for i in range(1, len(last_k_losses)):
+                            if last_k_losses[i] > last_k_losses[i-1]:
+                                flags.append(True)
+                            else:
+                                flags.append(False)
+                                break
+                        if all(flags):
+                            print(f'Stopping early at epoch {epoch+1} (last k losses: {last_k_losses}).')
+                            break
                 
             if len(last_k_losses) == k:
                 del last_k_losses[0]
