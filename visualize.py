@@ -67,6 +67,9 @@ def main(args):
     tr = args.temporal_resolution
     sr = args.spatial_resolution
     
+    if args.length is None:
+        length = (maxes[1] - mins[1]) / sr / 1.5
+    
     input_cols = [torch.arange(mins[0], maxes[0], (maxes[0] - mins[0]) / tr)] + [
         torch.arange(start, end, (end - start) / sr)
         for start, end in zip(mins[1:], maxes[1:])
@@ -191,6 +194,14 @@ def main(args):
             
             print('Writing frames...')
             
+            print(f'True sol: {plot_true_sol}')
+            print(f'E: {Us["E"].nanmean()}, {torch.isnan(Us["E"]).sum().item()} nan')
+            print(f'B: {Us["B"].nanmean()}, {torch.isnan(Us["B"]).sum().item()} nan')
+            
+            if args.fix_nan:
+                Us['E'] = torch.nan_to_num(Us['E'])
+                Us['B'] = torch.nan_to_num(Us['B'])
+            
             X_shape = X_np.shape
             
             if double_quiver:
@@ -213,7 +224,7 @@ def main(args):
                         Us['E'][j, :, 0].reshape(X_shape),
                         Us['E'][j, : , 1].reshape(X_shape),
                         Us['E'][j, :, 2].reshape(X_shape),
-                        length=args.length, normalize=True, arrow_length_ratio=args.alr,
+                        length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=E_colors
                     )
                     writer.grab_frame()
@@ -231,7 +242,7 @@ def main(args):
                         Us['B'][j, :, 0].reshape(X_shape),
                         Us['B'][j, : , 1].reshape(X_shape),
                         Us['B'][j, :, 2].reshape(X_shape),
-                        length=args.length, normalize=True, arrow_length_ratio=args.alr,
+                        length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=B_colors
                     )
                     writer.grab_frame()
@@ -342,13 +353,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--length',
         type=float,
-        default=0.05,
+        default=None,
         help='Quiver plot arrow length.'
     )
     parser.add_argument(
         '--alr',
         type=float,
-        default=0.3,
+        default=0.5,
         help='Quiver plot arrow length ratio.'
     )
     parser.add_argument(
@@ -356,6 +367,12 @@ if __name__ == "__main__":
         action='store_true',
         default=True,
         help='Overwrite existing viz.'
+    )
+    parser.add_argument(
+        '--fix_nan',
+        action='store_true',
+        default=True,
+        help='Replace nan\'s with 0.'
     )
 
     args = parser.parse_args()

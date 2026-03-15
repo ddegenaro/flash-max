@@ -8,13 +8,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--input', '-i',
     type=str,
-    default='out.txt',
+    default='1_more.txt',
     help='The Maple output file to be parsed as the input to this transpiler.'
 )
 parser.add_argument(
     '--output', '-o',
     type=str,
-    default='functions',
+    default='one_more_function',
     help='The name of the output directory or script name to write the torch function(s).'
 )
 
@@ -44,7 +44,13 @@ solution_text = open(args.input).read()
 if solution_text.startswith('[['):
     assert solution_text.endswith(']]')
     solution_text = solution_text[1:-1] # strip outer brackets
-    os.makedirs('functions', exist_ok=True)
+    if os.path.exists(output_loc) and os.path.isdir(output_loc):
+        next_num = min(
+            int(x.split('_')[1].split('.')[0])
+            for x in os.listdir(output_loc)
+        )
+    else:
+        os.makedirs(output_loc)
     is_list = True
     if output_loc.endswith('.py'):
         output_loc = output_loc[:-3]
@@ -79,6 +85,8 @@ for i, solution in enumerate(solutions):
                 component = component.replace(cond_replacement, cond_replacements[cond_replacement][0])
             for replacement in replacements:
                 component = component.replace(replacement, replacements[replacement])
+            if component.strip() == '0':
+                component = 'torch.zeros(t.size()).to(t.device)'
             f.write(f'\t{name} = {component}\n')
         
         f.write(f'\n\treturn torch.vstack(({", ".join(name for name in names)}))')

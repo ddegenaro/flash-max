@@ -282,11 +282,11 @@ def main(args):
                 
                 best_loss = mse
 
-                if mse < args.tol: # must improve to break
+                if epoch > 100 and mse < args.tol: # must improve to break
                     print(f'Stopping early at epoch {epoch+1} (mse {mse} < args.tol {args.tol}).')
                     break
                 
-                if len(last_k_losses) == k:
+                if epoch > 100 and len(last_k_losses) == k:
                     last_k_losses_tensor = torch.tensor(last_k_losses)
                     if torch.allclose(
                         last_k_losses_tensor,
@@ -414,28 +414,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [0.2] * input_dim,
+        default=[0.] + [-1.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [0.8] * input_dim,
+        default=[0.] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [0.4] * input_dim,
+        default=[0.] + [-0.5] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [0.6] * input_dim,
+        default=[0.3] + [0.5] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -462,7 +462,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
@@ -477,7 +477,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--activation',
         type=str,
-        default='relu',
+        default='cosine',
         help='Activation function to use.'
     )
     parser.add_argument(
@@ -513,19 +513,19 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=1e-2,
+        default=5e-3,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=0,
+        default=5e-5,
         help='Weight decay.'
     )
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Batch size for training and validation. Default 1_000.'
     )
     parser.add_argument(
