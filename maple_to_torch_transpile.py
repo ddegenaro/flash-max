@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--input', '-i',
     type=str,
-    default='1_more.txt',
+    default='out.txt',
     help='The Maple output file to be parsed as the input to this transpiler.'
 )
 parser.add_argument(
@@ -25,11 +25,6 @@ output_loc = args.output
 
 solution_pattern = re.compile(r"\[.+?\]")
 names = ('E_x', 'E_y', 'E_z', 'B_x', 'B_y', 'B_z')
-
-cond_replacements = OrderedDict({
-    'sqrt(x^2+y^2+z^2)': ('r', 'r = torch.sqrt(x**2+y**2+z**2)'),
-    'x^2+y^2+z^2': ('r_sq', 'r_sq = x**2+y**2+z**2'),
-})
 
 replacements = OrderedDict({
     'sin': 'torch.sin',
@@ -73,16 +68,9 @@ for i, solution in enumerate(solutions):
         f.write('import torch\nfrom torch import Tensor\n\nc = 1.0\n\n')
         f.write('def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:\n')
         
-        for cond_replacement in cond_replacements:
-            if cond_replacement in solution:
-                f.write(f'\t{cond_replacements[cond_replacement][1]}\n')
-        f.write('\n')
-        
         components = solution[1:-1].split(',')
         assert len(components) == 6
         for component, name in zip(components, names):
-            for cond_replacement in cond_replacements:
-                component = component.replace(cond_replacement, cond_replacements[cond_replacement][0])
             for replacement in replacements:
                 component = component.replace(replacement, replacements[replacement])
             if component.strip() == '0':

@@ -357,7 +357,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--output_dim',
         type=int,
-        default=1,
+        default=6,
         help='Number of wave displacement dimensions to be output. Default 1.'
     )
     parser.add_argument(
@@ -405,7 +405,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--norm_inputs',
         action='store_true',
-        default=True,
+        default=False,
         help='Normalize inputs via z-scaling.'
     )
     parser.add_argument(
@@ -432,14 +432,14 @@ if __name__ == "__main__":
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-0.5] * input_dim,
+        default=[0.] + [-0.8] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.3] + [0.5] * input_dim,
+        default=[0.1] + [0.8] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -517,19 +517,19 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=5e-3,
+        default=5e-2,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=5e-5,
+        default=0,
         help='Weight decay.'
     )
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=10_000,
+        default=1_000,
         help='Batch size for training and validation. Default 1_000.'
     )
     parser.add_argument(

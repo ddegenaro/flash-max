@@ -4,6 +4,8 @@ import os
 import argparse
 import json
 
+experiments = sorted([int(x) for x in os.listdir('experiments') if '.' not in x])
+
 def dlof(arg):
     if type(arg) != list:
         return arg
@@ -16,13 +18,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--start', '-s',
     type=int,
-    required=True
+    default=experiments[-2]
 )
 
 parser.add_argument(
     '--end', '-e',
     type=int,
-    required=True
+    default=experiments[-1]
 )
 
 args = parser.parse_args()

@@ -29,8 +29,6 @@ class MaxwellSimple(PCNN):
             init=init
         )
         
-        self.output_dim *= 6
-        
         self.Z_x = nn.ParameterDict()
         self.W = nn.ParameterDict()
         self.b = nn.ParameterDict()
@@ -132,8 +130,6 @@ class Maxwell(PCNN):
             # dropout_val=dropout_val
             init=init
         )
-        
-        self.output_dim *= 6
         
         self.p_array = p_array # shape is N rows, 6 columns
         self.z_array = z_array # shape is N rows, M columns

@@ -40,13 +40,7 @@ def main(args):
     is_3d_input = (input_dim == 3)
     double_quiver = (output_dim == 6)
 
-    try:
-        model_class = eval(hparams['model_class'])
-    except:
-        if hparams['use_simplified']:
-            model_class = WaveSimplified
-        else:
-            model_class = Wave
+    model_class = eval(hparams['model_class'])
     model = model_class(
         width=hparams['width'],
         c=hparams['c'],
@@ -59,7 +53,7 @@ def main(args):
         os.path.join(path, 'model.pth'),
         map_location=DEVICE
     ))
-    model.train()
+    model.eval()
 
     mins = args.mins if args.mins is not None else hparams['val_mins']
     maxes = args.maxes if args.maxes is not None else hparams['val_maxes']
