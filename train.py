@@ -53,7 +53,9 @@ def train_epoch(
         
         for optimizer in optimizers:
             optimizer.zero_grad()
+        
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
+        
         if targets.shape != outputs.shape:
             mse_loss = loss_fn(outputs, targets.unsqueeze(1))
             print('WARN: loss')
@@ -123,8 +125,9 @@ def main(args):
     sigma_targets = train_targets.std(dim=0)
     
     if args.norm_inputs:
-        train_inputs = (train_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
+        train_inputs[:, 1:] = (train_inputs[:, 1:] - mu_inputs[1:].unsqueeze(0)) / sigma_inputs[1:].unsqueeze(0)
         train_targets = (train_targets - mu_targets.unsqueeze(0)) / sigma_targets.unsqueeze(0)
+        assert not train_inputs.isnan().any().item() and not train_targets.isnan().any().item()
         
     if args.batch_size > args.n_train:
         batch_size = args.n_train
@@ -151,11 +154,12 @@ def main(args):
     if val_inputs.shape[0] != val_targets.shape[0]:
         val_targets = val_targets.reshape(val_inputs.shape[0], -1)
     
-    mean_val_f = (val_targets ** 2).mean()
-    
     if args.norm_inputs:
-        val_inputs = (val_inputs - mu_inputs.unsqueeze(0)) / sigma_inputs.unsqueeze(0)
+        val_inputs[:, 1:] = (val_inputs[:, 1:] - mu_inputs[1:].unsqueeze(0)) / sigma_inputs[1:].unsqueeze(0)
         val_targets = (val_targets - mu_targets.unsqueeze(0)) / sigma_targets.unsqueeze(0)
+        assert not val_inputs.isnan().any().item() and not val_targets.isnan().any().item()
+        
+    mean_val_f = (val_targets ** 2).mean()
 
     val_loader = DataLoader(
         TensorDataset(
@@ -401,7 +405,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--norm_inputs',
         action='store_true',
-        default=False,
+        default=True,
         help='Normalize inputs via z-scaling.'
     )
     parser.add_argument(
@@ -462,7 +466,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=10_000,
+        default=1_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(

@@ -1,6 +1,15 @@
+from __future__ import print_function
+
 import os
 import argparse
 import json
+
+def dlof(arg):
+    if type(arg) != list:
+        return arg
+    if type(arg[0]) != float:
+        return arg
+    return '[' + ', '.join(f'{a:.2f}' for a in arg) + ']'
 
 parser = argparse.ArgumentParser()
 
@@ -31,7 +40,7 @@ for key in data1:
     if key not in data2:
         print(f'{key} in {s} but not in {e}.')
     elif data1[key] != data2[key]:
-        print(f'{s} has {key}={data1[key]}, but {e} has {key}={data2[key]}.')
+        print(f'{s} has {key}={dlof(data1[key])}, but {e} has {key}={dlof(data2[key])}.')
         
 for key in data2:
     if key not in data1:

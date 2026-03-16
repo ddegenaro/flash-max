@@ -75,17 +75,26 @@ def main(args):
         for start, end in zip(mins[1:], maxes[1:])
     ]
     
-    # if hparams['norm_inputs']:
-    #     mu_inputs = hparams['mu_inputs']
-    #     sigma_inputs = hparams['sigma_inputs']
+    if hparams['norm_inputs']:
+        mu_inputs = torch.tensor(hparams['mu_inputs'])
+        sigma_inputs = torch.tensor(hparams['sigma_inputs'])
         
-    #     mu_targets = hparams['mu_targets']
-    #     sigma_targets = hparams['sigma_targets']
+        mu_targets = torch.tensor(hparams['mu_targets'])
+        sigma_targets = torch.tensor(hparams['sigma_targets'])
         
-    #     assert len(mu_inputs) == len(sigma_inputs) == len(input_cols)
-    #     for i in range(len(mu_inputs)):
-    #         if sigma_inputs[i] != 0:
-    #             input_cols[i] = (input_cols[i] - mu_inputs[i]) / sigma_inputs[i]
+        assert len(mu_inputs) == len(sigma_inputs) == len(input_cols)
+            
+        def norm_pos(pos_batch):
+            return (pos_batch - mu_inputs[1:].to(pos_batch.device)) / sigma_inputs[1:].to(pos_batch.device)
+        
+        def unnorm_outputs(U_batch):
+            return (U_batch * sigma_targets.to(U_batch.device)) + mu_targets.to(U_batch.device)
+    else:
+        def norm_pos(pos_batch):
+            return pos_batch
+        
+        def unnorm_outputs(U_batch):
+            return U_batch
             
     if output_dim == 1:
         X, Y = torch.meshgrid(input_cols[1], input_cols[2])
@@ -96,7 +105,7 @@ def main(args):
                 z_val = (hparams['val_mins'][-1] + hparams['val_maxes'][-1]) / 2
             else:
                 z_val = args.z_val
-            Z_flat = torch.ones(X_flat.size()) * z_val # fixed z-value
+            Z_flat = torch.ones(X_flat.size()) * (z_val - mu_inputs[-1]) / sigma_inputs[-1] # fixed z-value
     else:
         X, Y, Z = torch.meshgrid(input_cols[1], input_cols[2], input_cols[3])
         X_flat = X.flatten()
@@ -177,13 +186,9 @@ def main(args):
                         else:
                             U_batch = u(t_batch.squeeze(-1), pos_batch[:, 0], pos_batch[:, 1]).T
                     else:
-                        U_batch = model(t_batch, pos_batch)
+                        U_batch = unnorm_outputs(model(t_batch, norm_pos(pos_batch)))
                     
                     U_batch = U_batch.detach().cpu().reshape(-1, hparams['output_dim'])
-                    
-                    # if hparams['norm_inputs']:
-                    #     for output_dim in range(len(mu_targets)):
-                    #         U_batch[:, 0] = (U_batch[:, output_dim] * sigma_targets[output_dim]) + mu_targets[output_dim]
                             
                     Us['E'][i][start_idx:end_idx] = U_batch[:, 0:3]
                     Us['B'][i][start_idx:end_idx] = U_batch[:, 3:6]
