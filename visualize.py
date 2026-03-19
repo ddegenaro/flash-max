@@ -13,6 +13,7 @@ from matplotlib import animation
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
 from utils import DEVICE
+from symlog import symexp
 # DEVICE = 'cpu'
 
 def main(args):
@@ -68,6 +69,8 @@ def main(args):
         torch.arange(start, end, (end - start) / sr)
         for start, end in zip(mins[1:], maxes[1:])
     ]
+    
+    frame_count = len(input_cols[0])
     
     if hparams['norm_inputs']:
         mu_inputs = torch.tensor(hparams['mu_inputs'])
@@ -128,6 +131,18 @@ def main(args):
     remainder = spatial_size % args.num_batches
     
     with torch.no_grad():
+        
+        Us = {
+            'true': {
+                'E': torch.zeros((frame_count, spatial_size, output_dim // 2)),
+                'B': torch.zeros((frame_count, spatial_size, output_dim // 2))
+            },
+            'pred': {
+                'E': torch.zeros((frame_count, spatial_size, output_dim // 2)),
+                'B': torch.zeros((frame_count, spatial_size, output_dim // 2))
+            }
+        } if double_quiver else torch.zeros((frame_count, spatial_size, output_dim))
+        
         for plot_true_sol in (True, False):
             
             if args.trueonly and plot_true_sol == False:
@@ -148,19 +163,15 @@ def main(args):
                 fp = os.path.join(path, fname)
                 if os.path.exists(fp) and not args.overwrite:
                     continue
-                
-            frame_count = len(input_cols[0])
             
             fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-            Us = {
-                'E': torch.zeros((frame_count, spatial_size, output_dim // 2)),
-                'B': torch.zeros((frame_count, spatial_size, output_dim // 2))
-            } if double_quiver else torch.zeros((frame_count, spatial_size, output_dim))
             
             if plot_true_sol:
                 print('Plotting true solution...')
+                key = 'true'
             else:
                 print('Plotting predictions...\n')
+                key = 'pred'
             
             for i in tqdm(range(frame_count), total=frame_count):
                 
@@ -180,12 +191,15 @@ def main(args):
                         else:
                             U_batch = u(t_batch.squeeze(-1), pos_batch[:, 0], pos_batch[:, 1]).T
                     else:
-                        U_batch = unnorm_outputs(model(t_batch, norm_pos(pos_batch)))
+                        if 'symlog' in hparams and hparams['symlog']:
+                            U_batch = unnorm_outputs(symexp(model(t_batch, norm_pos(pos_batch))))
+                        else:
+                            U_batch = unnorm_outputs(model(t_batch, norm_pos(pos_batch)))
                     
                     U_batch = U_batch.detach().cpu().reshape(-1, hparams['output_dim'])
                             
-                    Us['E'][i][start_idx:end_idx] = U_batch[:, 0:3]
-                    Us['B'][i][start_idx:end_idx] = U_batch[:, 3:6]
+                    Us[key]['E'][i][start_idx:end_idx] = U_batch[:, 0:3]
+                    Us[key]['B'][i][start_idx:end_idx] = U_batch[:, 3:6]
                             
                     del U_batch, pos_batch, t_batch
             
@@ -194,23 +208,28 @@ def main(args):
             print('Writing frames...')
             
             print(f'True sol: {plot_true_sol}')
-            print(f'E: {Us["E"].nanmean()}, {torch.isnan(Us["E"]).sum().item()} nan')
-            print(f'B: {Us["B"].nanmean()}, {torch.isnan(Us["B"]).sum().item()} nan')
+            print(f'E: {Us[key]["E"].nanmean()}, {torch.isnan(Us[key]["E"]).sum().item()} nan')
+            print(f'B: {Us[key]["B"].nanmean()}, {torch.isnan(Us[key]["B"]).sum().item()} nan')
             
             if args.fix_nan:
-                Us['E'] = torch.nan_to_num(Us['E'])
-                Us['B'] = torch.nan_to_num(Us['B'])
+                Us[key]['E'] = torch.nan_to_num(Us[key]['E'])
+                Us[key]['B'] = torch.nan_to_num(Us[key]['B'])
             
             X_shape = X_np.shape
             
             if double_quiver:
                 
-                E_magnitude = torch.sqrt((Us['E']**2).sum(2))
-                B_magnitude = torch.sqrt((Us['B']**2).sum(2))
-                E_norm = plt.Normalize(vmin=E_magnitude.min(), vmax=E_magnitude.max())
-                B_norm = plt.Normalize(vmin=B_magnitude.min(), vmax=B_magnitude.max())
+                E_magnitude = torch.sqrt((Us[key]['E']**2).sum(2))
+                B_magnitude = torch.sqrt((Us[key]['B']**2).sum(2))
+                
+                if plot_true_sol and not args.trueonly:
+                    E_norm = plt.Normalize(vmin=E_magnitude.min(), vmax=E_magnitude.max())
+                    B_norm = plt.Normalize(vmin=B_magnitude.min(), vmax=B_magnitude.max())
+                
                 E_colors = plt.cm.RdBu(E_norm(E_magnitude.flatten()))
                 B_colors = plt.cm.RdBu(B_norm(B_magnitude.flatten()))
+                
+                assert E_magnitude.shape == B_magnitude.shape == Us[key]['E'].shape[:2] == Us[key]['B'].shape[:2]
                 
                 writer = animation.PillowWriter(fps=args.fps)
                 writer.setup(fig, fp_E, dpi=args.dpi)
@@ -220,9 +239,9 @@ def main(args):
                     ax.clear()
                     ax.quiver(
                         X_np, Y_np, Z_np,
-                        Us['E'][j, :, 0].reshape(X_shape),
-                        Us['E'][j, : , 1].reshape(X_shape),
-                        Us['E'][j, :, 2].reshape(X_shape),
+                        Us[key]['E'][j, :, 0].reshape(X_shape),
+                        Us[key]['E'][j, : , 1].reshape(X_shape),
+                        Us[key]['E'][j, :, 2].reshape(X_shape),
                         length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=E_colors
                     )
@@ -238,9 +257,9 @@ def main(args):
                     ax.clear()
                     ax.quiver(
                         X_np, Y_np, Z_np,
-                        Us['B'][j, :, 0].reshape(X_shape),
-                        Us['B'][j, : , 1].reshape(X_shape),
-                        Us['B'][j, :, 2].reshape(X_shape),
+                        Us[key]['B'][j, :, 0].reshape(X_shape),
+                        Us[key]['B'][j, : , 1].reshape(X_shape),
+                        Us[key]['B'][j, :, 2].reshape(X_shape),
                         length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=B_colors
                     )
@@ -270,6 +289,28 @@ def main(args):
                     fps=args.fps,
                     dpi=args.dpi
                 )
+        
+        breakpoint()
+        if double_quiver:    
+            plt.figure(1)
+            plt.plot(
+                input_cols[0].cpu().numpy(),
+                [
+                    torch.nn.MSELoss()(Us['true']['E'][k], Us['pred']['E'][k]).item()
+                    for k in range(len(Us['true']['E']))
+                ],
+                label='E'
+            )
+            plt.plot(
+                input_cols[0].cpu().numpy(),
+                [
+                    torch.nn.MSELoss()(Us['true']['B'][k], Us['pred']['B'][k]).item()
+                    for k in range(len(Us['true']['B']))
+                ],
+                label='B'
+            )
+            plt.legend()
+            plt.savefig(os.path.join(path, 'loss_over_video.png'), dpi=300)
 
 if __name__ == "__main__":
 

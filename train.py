@@ -19,6 +19,7 @@ except:
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
 from utils import DEVICE, PCNN
+from symlog import symlog
 
 torch.manual_seed(42)
 
@@ -203,7 +204,10 @@ def main(args):
             weight_decay=args.wd
         ),)
 
-    loss_fn = torch.nn.MSELoss()
+    if args.symlog:
+        loss_fn = lambda x, y: torch.nn.MSELoss()(x, symlog(y))
+    else:
+        loss_fn = torch.nn.MSELoss()
     
     os.makedirs('experiments', exist_ok=True)
     experiments_list = os.listdir('experiments')
@@ -432,14 +436,14 @@ if __name__ == "__main__":
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-0.8] * input_dim,
+        default=[0.] + [-0.5] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [0.8] * input_dim,
+        default=[0.5] + [0.5] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -481,13 +485,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--activation',
         type=str,
-        default='cosine',
+        default='relu',
         help='Activation function to use.'
     )
     parser.add_argument(
         '--inner_lr',
         type=float,
-        default=1e-2,
+        default=0.01,
         help='Learning rate.'
     )
     parser.add_argument(
@@ -537,6 +541,12 @@ if __name__ == "__main__":
         type=int,
         default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
+    )
+    parser.add_argument(
+        '--symlog',
+        action='store_true',
+        default=False,
+        help='Whether to use symlog loss.'
     )
     # parser.add_argument(
     #     '--do',
