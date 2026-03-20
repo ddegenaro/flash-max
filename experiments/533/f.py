@@ -17,7 +17,6 @@ def bump_function(xi, a=1.0):
     mask = torch.abs(xi) < a
     return torch.where(mask, val, torch.zeros_like(xi))
 
-@torch.set_grad_enabled(True)
 def u(t, x, y, z):
     """
     Computes E and B fields for the compactly supported EMP using Autograd.

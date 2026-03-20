@@ -69,6 +69,8 @@ def main(args):
         torch.arange(start, end, (end - start) / sr)
         for start, end in zip(mins[1:], maxes[1:])
     ]
+    for i in range(len(input_cols)):
+        input_cols[i] += 1e-8
     
     frame_count = len(input_cols[0])
     
@@ -240,7 +242,7 @@ def main(args):
                     ax.quiver(
                         X_np, Y_np, Z_np,
                         Us[key]['E'][j, :, 0].reshape(X_shape),
-                        Us[key]['E'][j, : , 1].reshape(X_shape),
+                        Us[key]['E'][j, :, 1].reshape(X_shape),
                         Us[key]['E'][j, :, 2].reshape(X_shape),
                         length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=E_colors
@@ -290,7 +292,7 @@ def main(args):
                     dpi=args.dpi
                 )
         
-        breakpoint()
+        # breakpoint()
         if double_quiver:    
             plt.figure(1)
             plt.plot(

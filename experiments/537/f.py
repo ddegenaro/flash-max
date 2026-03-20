@@ -39,6 +39,7 @@ def u(t, x, y, z):
     grad_outputs = torch.ones_like(Phi)
 
     # We use create_graph=True because we need to take derivatives OF these derivatives later
+    # breakpoint()
     dPhi_dx, dPhi_dy = torch.autograd.grad(
         outputs=Phi, inputs=(x, y),
         grad_outputs=grad_outputs, create_graph=True
