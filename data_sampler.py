@@ -35,11 +35,11 @@ def random_data(
 
     if restrict_time:
         sample = torch.rand(
-            (spatial_dim, num_samples), dtype=torch.float32
+            (spatial_dim, round(num_samples)), dtype=torch.float32
         )
         
         ones = torch.ones(
-            (1, num_samples), dtype=torch.float32
+            (1, round(num_samples)), dtype=torch.float32
         )
         ones[:, :round(num_samples / 2)] *= mins[0]
         ones[:, round(num_samples / 2):] *= maxes[0]
@@ -101,13 +101,13 @@ def grid_data(
             [torch.linspace(
                 start=0,
                 end=1,
-                steps=num_samples,
+                steps=round(num_samples),
                 dtype=torch.float32
             ) for _ in range(spatial_dim)]
         )
 
         ones = torch.ones(
-            (1, num_samples), dtype=torch.float32
+            (1, round(num_samples)), dtype=torch.float32
         )
         ones[:, :round(num_samples / 2)] *= mins[0]
         ones[:, round(num_samples / 2):] *= maxes[0]
@@ -122,7 +122,7 @@ def grid_data(
             [torch.linspace(
                 start=0,
                 end=1,
-                steps=num_samples,
+                steps=round(num_samples),
                 dtype=torch.float32
             ) for i in range(1 + spatial_dim)]
         )

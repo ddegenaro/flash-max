@@ -39,6 +39,7 @@ def train_epoch(
     print(f'Epoch {es}/{epochs}...', end='\r')
     model.train()
     total_loss_train = 0.
+    num_train_examples = 0
 
     if verbose:
         enum_train_loader = enumerate(tqdm(train_loader))
@@ -57,6 +58,10 @@ def train_epoch(
         
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
         
+        # if es > 100:
+        #     breakpoint()
+        #     pass
+        
         if targets.shape != outputs.shape:
             mse_loss = loss_fn(outputs, targets.unsqueeze(1))
             print('WARN: loss')
@@ -67,16 +72,17 @@ def train_epoch(
             optimizer.step()
 
         lv = mse_loss.item()
-        total_loss_train += lv
+        total_loss_train += lv * targets.shape[0]
+        num_train_examples += targets.shape[0]
         s = i + 1
         if s % log_freq == 0:
             al = total_loss_train / s
-            print(f'Epoch: {es:02d} - Step: {s:04d} - Loss: {lv:.4f} - Avg: {al:.4f}')
+            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv:.4f} - Val Loss: {lv:.4f} - Avg: {al:.4f}')
     training_time = time() - training_start
 
     model.eval()
     total_loss_val = 0.
-    num_examples = 0
+    num_val_examples = 0
 
     val_start = time()
     with torch.no_grad():
@@ -90,12 +96,13 @@ def train_epoch(
             else:
                 mse_loss = loss_fn(outputs, targets)
 
-            total_loss_val += mse_loss.item() * targets.shape[0]
+            lv = mse_loss.item()
+            total_loss_val += lv * targets.shape[0]
             
-            num_examples += targets.shape[0]
+            num_val_examples += targets.shape[0]
     val_time = time() - val_start
 
-    return (total_loss_val / num_examples), training_time, val_time
+    return (total_loss_train / num_train_examples), (total_loss_val / num_val_examples), training_time, val_time
 
 def main(args):
 
@@ -239,7 +246,7 @@ def main(args):
         os.path.join('experiments', this_experiment, 'log.tsv'),
         'w+', encoding='utf-8'
     ) as fp:
-        fp.write('epoch\tmse\ttraining_time\tval_time\trel_l2_error\n')
+        fp.write('epoch\tmse_train\tmse_val\ttraining_time\tval_time\trel_l2_error\n')
         
     # with open(
     #     os.path.join('experiments', this_experiment, 'model_architecture.txt'),
@@ -263,7 +270,7 @@ def main(args):
         ) as fp:
             
         for epoch in range(args.max_epochs):
-            mse, training_time, val_time = train_epoch(
+            mse_train, mse_val, training_time, val_time = train_epoch(
                 train_loader=train_loader,
                 val_loader=val_loader,
                 model=model,
@@ -275,23 +282,23 @@ def main(args):
                 verbose=args.verbose
             )
             
-            rel_l2_error = mse / mean_val_f
+            rel_l2_error = mse_val / mean_val_f
             
             fp.write(
-                f'{epoch+1}\t{mse}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
+                f'{epoch+1}\t{mse_train}\t{mse_val}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
             )
 
-            if mse < best_loss:
+            if mse_val < best_loss:
                 torch.save(
                     model.state_dict(),
                     os.path.join('experiments', this_experiment, 'model.pth')
                 )
                 # print(f'Epoch {epoch+1}: saving model for mse {mse:.4f}')
                 
-                best_loss = mse
+                best_loss = mse_val
 
-                if epoch > 100 and mse < args.tol: # must improve to break
-                    print(f'Stopping early at epoch {epoch+1} (mse {mse} < args.tol {args.tol}).')
+                if epoch > 100 and mse_val < args.tol: # must improve to break
+                    print(f'Stopping early at epoch {epoch+1} (mse {mse_val} < args.tol {args.tol}).')
                     break
                 
                 if epoch > 100 and len(last_k_losses) == k:
@@ -318,7 +325,7 @@ def main(args):
             if len(last_k_losses) == k:
                 del last_k_losses[0]
             
-            last_k_losses.append(mse)
+            last_k_losses.append(mse_val)
 
     print('Done.')
     print(f'Results can be found at {os.path.join('experiments', this_experiment)}.')
@@ -409,7 +416,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--norm_inputs',
         action='store_true',
-        default=True,
+        default=False,
         help='Normalize inputs via z-scaling.'
     )
     parser.add_argument(
@@ -422,28 +429,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-1.5] * input_dim,
+        default=[0.] + [-4.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [1.5] * input_dim,
+        default=[0.] + [4.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-1.0] * input_dim,
+        default=[0.] + [-2.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.4] + [1.0] * input_dim,
+        default=[0.5] + [2.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -470,7 +477,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=10_000,
+        default=1_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
@@ -521,13 +528,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=1,
+        default=1e-1,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=0,
+        default=5e-5,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -539,7 +546,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1_000,
+        default=2_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
