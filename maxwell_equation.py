@@ -52,7 +52,7 @@ class MaxwellSimple(PCNN):
         for key in ('1+', '1-', '2+', '2-'):
             
             Z = torch.vstack((
-                torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True)),
+                torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True) + 1e-10),
                 self.Z_x[key]
             ))
         

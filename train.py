@@ -8,6 +8,7 @@ from inspect import signature
 from tqdm import tqdm
 import torch
 from torch import nn
+from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, TensorDataset
 
 from data_sampler import random_data, grid_data
@@ -67,7 +68,9 @@ def train_epoch(
             print('WARN: loss')
         else:
             mse_loss = loss_fn(outputs, targets)
+        # print(model.Z_x['2-'][:, 305].tolist())
         mse_loss.backward()
+        # clip_grad_norm_(model.parameters(), max_norm=1.0)
         for optimizer in optimizers:
             optimizer.step()
 
@@ -477,7 +480,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
