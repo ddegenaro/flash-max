@@ -4,6 +4,7 @@ import json
 import argparse
 from typing import Any
 
+import seaborn as sns
 from tqdm import tqdm
 import torch
 import matplotlib.pyplot as plt
@@ -209,8 +210,6 @@ def main(args):
             
             print('Writing frames...')
             
-            # breakpoint()
-            
             print(f'True sol: {plot_true_sol}')
             print(f'E: {Us[key]["E"].nanmean()}, {torch.isnan(Us[key]["E"]).sum().item()} nan')
             print(f'B: {Us[key]["B"].nanmean()}, {torch.isnan(Us[key]["B"]).sum().item()} nan')
@@ -294,8 +293,7 @@ def main(args):
                     dpi=args.dpi
                 )
         
-        # breakpoint()
-        if double_quiver:    
+        if double_quiver:
             plt.figure(1)
             plt.plot(
                 input_cols[0].cpu().numpy(),
@@ -315,6 +313,37 @@ def main(args):
             )
             plt.legend()
             plt.savefig(os.path.join(path, 'loss_over_video.png'), dpi=300)
+        
+        if args.do_weight_plot:
+            vmin = min([model.Z_x[key].min() for key in model.Z_x]).cpu().item()
+            vmax = max([model.Z_x[key].max() for key in model.Z_x]).cpu().item()
+            
+            keys = ['1+', '1-', '2+', '2-']
+            fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+            
+            for ax, key in zip(axes.flatten(), keys):
+                sns.heatmap(
+                    model.Z_x[key].cpu().sort(dim=1).values,
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap='coolwarm',
+                    ax=ax,
+                    cbar=False,        # shared colorbar below
+                    xticklabels=[],
+                    yticklabels=['x', 'y', 'z']
+                )
+                ax.set_title(key)
+            
+            # single shared colorbar
+            mappable = plt.cm.ScalarMappable(
+                cmap='coolwarm',
+                norm=plt.Normalize(vmin=vmin, vmax=vmax)
+            )
+            fig.colorbar(mappable, ax=axes, orientation='horizontal', fraction=0.03, pad=0.08)
+            
+            plt.savefig(os.path.join(path, 'heatmap_Z_x.png'), dpi=300)
+            plt.close(fig)
+            
 
 if __name__ == "__main__":
 
@@ -417,6 +446,12 @@ if __name__ == "__main__":
         action='store_true',
         default=True,
         help='Replace nan\'s with 0.'
+    )
+    parser.add_argument(
+        '--do_weight_plot',
+        action='store_true',
+        default=True,
+        help='Make a heatmap of each weight matrix.'
     )
 
     args = parser.parse_args()

@@ -4,7 +4,7 @@ from torch import nn
 if torch.backends.mps.is_available():
     DEVICE = 'mps'
 elif torch.cuda.is_available():
-    DEVICE = 'cuda'
+    DEVICE = 'cuda:1'
 else:
     DEVICE = 'cpu'
     

@@ -24,6 +24,7 @@ def u(t, x, y, z):
         return (func(*c_plus) - func(*c_minus)) / (2 * h)
 
     def second_deriv(func, var_idx1, var_idx2, coords):
+        breakpoint()
         c_pp = list(coords)
         c_pm = list(coords)
         c_mp = list(coords)
@@ -34,8 +35,7 @@ def u(t, x, y, z):
         c_mp[var_idx1] -= h; c_mp[var_idx2] += h
         c_mm[var_idx1] -= h; c_mm[var_idx2] -= h
 
-        # TODO: this zeros everything when the inputs t x y z are torch tensors
-        return (func(*c_pp) - func(*c_pm) - func(*c_mp) + func(*c_mm)) / (4 * h**2)
+        return (func(*c_pp) - func(*c_pm) - func(*c_mp) + func(*c_mm)) / (4 * h**2) # this is a problem with tensors
 
     # Define u(t, x, y, z) = f(sqrt(3)t + x + y + z)
     U = lambda t, x, y, z: f_func(sqrt3*t + x + y + z)+f_func(sqrt3*t - x + y + z)-f_func(sqrt6*t - x - 2*y + z)

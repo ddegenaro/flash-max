@@ -34,7 +34,6 @@ def u(t, x, y, z):
         c_mp[var_idx1] -= h; c_mp[var_idx2] += h
         c_mm[var_idx1] -= h; c_mm[var_idx2] -= h
 
-        # TODO: this zeros everything when the inputs t x y z are torch tensors
         return (func(*c_pp) - func(*c_pm) - func(*c_mp) + func(*c_mm)) / (4 * h**2)
 
     # Define u(t, x, y, z) = f(sqrt(3)t + x + y + z)

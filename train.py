@@ -59,10 +59,6 @@ def train_epoch(
         
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
         
-        # if es > 100:
-        #     breakpoint()
-        #     pass
-        
         if targets.shape != outputs.shape:
             mse_loss = loss_fn(outputs, targets.unsqueeze(1))
             print('WARN: loss')
@@ -221,7 +217,10 @@ def main(args):
     
     os.makedirs('experiments', exist_ok=True)
     experiments_list = os.listdir('experiments')
-    experiments_list.remove('.DS_Store')
+    try:
+        experiments_list.remove('.DS_Store')
+    except:
+        pass
     this_experiment = str(1 + max(
         [int(d) for d in experiments_list] + [0]
     ))
@@ -250,18 +249,10 @@ def main(args):
         'w+', encoding='utf-8'
     ) as fp:
         fp.write('epoch\tmse_train\tmse_val\ttraining_time\tval_time\trel_l2_error\n')
-        
-    # with open(
-    #     os.path.join('experiments', this_experiment, 'model_architecture.txt'),
-    #     'w+', encoding='utf-8'
-    # ) as fp:
-    #     fp.write(model.__str__().strip())
-        # for name, param in model.named_parameters():
-        #     fp.write('\n' + name + ' ' + str(param.shape))
             
     best_loss = torch.inf
     k = args.k
-    last_k_losses = []
+    last_k_errs = []
     
     print(f'(Exp. {this_experiment}) Training {model_class.__name__} on {DEVICE}...')
     for key, value in hparams.items():
@@ -285,50 +276,53 @@ def main(args):
                 verbose=args.verbose
             )
             
+            # TODO: CHECK VALIDITY OF THIS
+            if mean_val_f == 0:
+                mean_val_f += 1e-10
             rel_l2_error = mse_val / mean_val_f
             
             fp.write(
                 f'{epoch+1}\t{mse_train}\t{mse_val}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
             )
+            fp.flush()
 
             if mse_val < best_loss:
                 torch.save(
                     model.state_dict(),
                     os.path.join('experiments', this_experiment, 'model.pth')
                 )
-                # print(f'Epoch {epoch+1}: saving model for mse {mse:.4f}')
                 
                 best_loss = mse_val
 
-                if epoch > 100 and mse_val < args.tol: # must improve to break
-                    print(f'Stopping early at epoch {epoch+1} (mse {mse_val} < args.tol {args.tol}).')
+                if epoch > 100 and rel_l2_error < args.tol: # must improve to break
+                    print(f'Stopping early at epoch {epoch+1} (mse {rel_l2_error} < args.tol {args.tol}).')
                     break
                 
-                if epoch > 100 and len(last_k_losses) == k:
-                    last_k_losses_tensor = torch.tensor(last_k_losses)
+                if epoch > 100 and len(last_k_errs) == k:
+                    last_k_errs_tensor = torch.tensor(last_k_errs)
                     if torch.allclose(
-                        last_k_losses_tensor,
-                        last_k_losses_tensor.mean(),
+                        last_k_errs_tensor,
+                        last_k_errs_tensor.mean(),
                         atol=args.atol
                     ):
-                        print(f'Stopping early at epoch {epoch+1} (last k losses: {last_k_losses}).')
+                        print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
                         break
                     else:
                         flags = []
-                        for i in range(1, len(last_k_losses)):
-                            if last_k_losses[i] > last_k_losses[i-1]:
+                        for i in range(1, len(last_k_errs)):
+                            if last_k_errs[i] > last_k_errs[i-1]:
                                 flags.append(True)
                             else:
                                 flags.append(False)
                                 break
                         if all(flags):
-                            print(f'Stopping early at epoch {epoch+1} (last k losses: {last_k_losses}).')
+                            print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
                             break
                 
-            if len(last_k_losses) == k:
-                del last_k_losses[0]
+            if len(last_k_errs) == k:
+                del last_k_errs[0]
             
-            last_k_losses.append(mse_val)
+            last_k_errs.append(rel_l2_error)
 
     print('Done.')
     print(f'Results can be found at {os.path.join('experiments', this_experiment)}.')
@@ -395,14 +389,14 @@ if __name__ == "__main__":
     parser.add_argument(
         '--tol',
         type=float,
-        default=1e-8,
-        help='Stop training if MSE is less than this tolerance.'
+        default=1e-4,
+        help='Stop training if rel L2 error is less than this tolerance.'
     )
     parser.add_argument(
         '--atol',
         type=float,
-        default=1e-8,
-        help='Stop training if MSE is not changing by more than this tolerance.'
+        default=1e-4,
+        help='Stop training if rel L2 error is not changing by more than this tolerance.'
     )
     parser.add_argument(
         '--k',
@@ -432,28 +426,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-4.0] * input_dim,
+        default=[0.] + [-1.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [4.0] * input_dim,
+        default=[0.] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-2.0] * input_dim,
+        default=[0.] + [-0.5] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.5] + [2.0] * input_dim,
+        default=[0.4] + [0.5] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -480,7 +474,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=10_000,
+        default=1_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
@@ -531,7 +525,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=1e-1,
+        default=5e-2,
         help='Learning rate.'
     )
     parser.add_argument(
@@ -549,7 +543,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=2_000,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
