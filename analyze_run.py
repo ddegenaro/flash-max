@@ -71,18 +71,23 @@ for i in range(start, end+1):
     if args.noise_scale is not None and data['noise_scale'] != args.noise_scale:
         continue
 
-    with open(os.path.join(exp_dir, 'f.py'), 'r') as f:
-        if re.findall(r'#\W+R =', f.read()):
-            func = 'plane waves'
-        else:
-            func = 'radial'
-    if args.func is not None and func != args.func:
-        continue
+    # with open(os.path.join(exp_dir, 'f.py'), 'r') as f:
+    #     if re.findall(r'#\W+R =', f.read()):
+    #         func = 'plane waves'
+    #     else:
+    #         func = 'radial'
+    # if args.func is not None and func != args.func:
+    #     continue
     
     print(f'Processing experiment {i}...')
-    print(f'function:      {func}')
+    # print(f'function:      {func}')
     print(f'training size: {data['n_train']}')
+    print(f'width:         {data['width']}')
     print(f'noise scale:   {data['noise_scale']}')
+    print(f'learning rate: {data['lr']}')
+    print(f'weight decay:  {data['wd']}')
+    print(f'training:      {data['train_mins']} -> {data['train_maxes']}')
+    print(f'validation:    {data['val_mins']} -> {data['val_maxes']}')
 
     df = pd.read_csv(
         os.path.join('experiments', f'{i}', 'log.tsv'),

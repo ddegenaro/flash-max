@@ -52,13 +52,13 @@ def create_maxwell_solver(f_double_prime, num_components=100, seed=42):
 
         # Compute fields by summing over the 100 components (axis=0)
         # The 1e-2 factor scales the sum as defined in u(t,x,y,z)
-        Ex = 1e-2 * torch.sum(f_ddot_vals * c_Ex.reshape(shape_expansion).to(t.device), axis=0)
-        Ey = 1e-2 * torch.sum(f_ddot_vals * c_Ey.reshape(shape_expansion).to(t.device), axis=0)
-        Ez = 1e-2 * torch.sum(f_ddot_vals * c_Ez.reshape(shape_expansion).to(t.device), axis=0)
+        Ex = 1e-2 * torch.sum(f_ddot_vals * c_Ex.reshape(shape_expansion), axis=0)
+        Ey = 1e-2 * torch.sum(f_ddot_vals * c_Ey.reshape(shape_expansion), axis=0)
+        Ez = 1e-2 * torch.sum(f_ddot_vals * c_Ez.reshape(shape_expansion), axis=0)
 
-        Bx = 1e-2 * torch.sum(f_ddot_vals * c_Bx.reshape(shape_expansion).to(t.device), axis=0)
-        By = 1e-2 * torch.sum(f_ddot_vals * c_By.reshape(shape_expansion).to(t.device), axis=0)
-        Bz = 1e-2 * torch.sum(f_ddot_vals * c_Bz.reshape(shape_expansion).to(t.device), axis=0)
+        Bx = 1e-2 * torch.sum(f_ddot_vals * c_Bx.reshape(shape_expansion), axis=0)
+        By = 1e-2 * torch.sum(f_ddot_vals * c_By.reshape(shape_expansion), axis=0)
+        Bz = 1e-2 * torch.sum(f_ddot_vals * c_Bz.reshape(shape_expansion), axis=0)
 
         return torch.vstack((Ex, Ey, Ez, Bx, By, Bz))
 

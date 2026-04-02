@@ -58,7 +58,7 @@ def train_epoch(
             optimizer.zero_grad()
         
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-        
+
         if targets.shape != outputs.shape:
             mse_loss = loss_fn(outputs, targets.unsqueeze(1))
             print('WARN: loss')
@@ -426,28 +426,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-1.0] * input_dim,
+        default=[0.1] + [-0.5] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.] + [1.0] * input_dim,
+        default=[0.1] + [0.5] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.] + [-0.5] * input_dim,
+        default=[0.1] + [-0.5] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.4] + [0.5] * input_dim,
+        default=[0.1] + [0.5] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -525,13 +525,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=5e-2,
+        default=5e-1,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=5e-5,
+        default=5e-4,
         help='Weight decay.'
     )
     parser.add_argument(
