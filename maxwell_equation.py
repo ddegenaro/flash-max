@@ -40,12 +40,9 @@ class MaxwellSimple(PCNN):
             nn.init.kaiming_normal_(self.Z_x[key].data)
             nn.init.kaiming_normal_(self.W[key].data.T)
         
-    def forward(self, t, x, log=False):
+    def forward(self, t, x):
         
         X = torch.hstack((t, x))
-        
-        if log:
-            print('X', tensor_round(X[0]))
         
         R = 0.
         
@@ -57,10 +54,6 @@ class MaxwellSimple(PCNN):
             ))
         
             A = self.activation(X @ Z + self.b[key]) * self.W[key]
-            
-            if log:
-                print(key, 'Z', tensor_round(Z[:, 0]))
-                print(key, 'A', tensor_round(A[:, 0][:4]), '...')
 
             if '1' in key:
                 P = torch.vstack((
@@ -82,10 +75,6 @@ class MaxwellSimple(PCNN):
                 )).T
                 
             R += A @ P
-            
-            if log:
-                # print(key, 'P', P[0])
-                print(key, 'R',tensor_round(R[0]))
         
         return R / self.width
 

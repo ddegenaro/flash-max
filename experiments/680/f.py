@@ -1,24 +1,21 @@
 import torch
-from torch import Tensor
 
 c = 1.0
 
-@torch.set_grad_enabled(True)
 def f_gaussian(s):
     """The specified 1D function f(s)."""
     return 0.03 * torch.exp(-100.0 * (s - 0.3)**2)
 
-@torch.set_grad_enabled(True)
-def u(t_val: Tensor, x_val: Tensor, y_val: Tensor, z_val: Tensor) -> Tensor:
+def u(t, x, y , z):
     """
     Maps a 1D function f to the Maxwell solutions E and B
     using the specified second-order differential operators.
     """
     # Ensure coordinates require gradients for PyTorch autograd
-    t = t_val.clone().detach().requires_grad_(True)
-    x = x_val.clone().detach().requires_grad_(True)
-    y = y_val.clone().detach().requires_grad_(True)
-    z = z_val.clone().detach().requires_grad_(True)
+    t = t.clone().detach().requires_grad_(True)
+    x = x.clone().detach().requires_grad_(True)
+    y = y.clone().detach().requires_grad_(True)
+    z = z.clone().detach().requires_grad_(True)
 
     # Define u(t, x, y, z)
     r = torch.sqrt(x**2 + y**2 + z**2)
@@ -64,4 +61,4 @@ def u(t_val: Tensor, x_val: Tensor, y_val: Tensor, z_val: Tensor) -> Tensor:
     d2u_dy2 = torch.autograd.grad(du_dy, y, grad_outputs=grad_ones, retain_graph=True)[0]
     B_z = -d2u_dx2 - d2u_dy2
 
-    return torch.vstack((E_x, E_y, E_z, B_x, B_y, B_z))
+    return torch.vstack((E_x, E_y, E_z, B_x, B_y, B_z)).detach()

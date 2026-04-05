@@ -58,6 +58,7 @@ def train_epoch(
             optimizer.zero_grad()
         
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
+        # breakpoint()
 
         if targets.shape != outputs.shape:
             mse_loss = loss_fn(outputs, targets.unsqueeze(1))
@@ -111,6 +112,8 @@ def main(args):
         data_fn = grid_data
     else:
         data_fn = random_data
+        
+    # breakpoint()
         
     train_inputs, train_targets = data_fn(
         num_samples=args.n_train,
@@ -413,7 +416,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--norm_inputs',
         action='store_true',
-        default=False,
+        default=True,
         help='Normalize inputs via z-scaling.'
     )
     parser.add_argument(
@@ -426,28 +429,28 @@ if __name__ == "__main__":
         '--train_mins',
         type=float,
         nargs='+',
-        default=[0.1] + [-0.5] * input_dim,
+        default=[0.0] + [0.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [0.5] * input_dim,
+        default=[0.0] + [0.5] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.1] + [-0.5] * input_dim,
+        default=[0.0] + [0.2] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [0.5] * input_dim,
+        default=[0.005] + [0.4] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -474,7 +477,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=1_000,
+        default=50_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
@@ -525,13 +528,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=5e-1,
+        default=5e-2,
         help='Learning rate.'
     )
     parser.add_argument(
         '--wd',
         type=float,
-        default=5e-4,
+        default=5e-5,
         help='Weight decay.'
     )
     parser.add_argument(
@@ -551,6 +554,12 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Whether to use symlog loss.'
+    )
+    parser.add_argument(
+        '--bc',
+        action='store_true',
+        default=False,
+        help='Whether to use boundary samples only (and BC loss).'
     )
     # parser.add_argument(
     #     '--do',

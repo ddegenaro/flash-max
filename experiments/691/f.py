@@ -1,15 +1,12 @@
 import torch
-from torch import Tensor
 
 c = 1.0
 
-@torch.set_grad_enabled(True)
 def f_gaussian(s):
     """The specified 1D function f(s)."""
     return 0.03 * torch.exp(-100.0 * (s - 0.3)**2)
 
-@torch.set_grad_enabled(True)
-def u(t_val: Tensor, x_val: Tensor, y_val: Tensor, z_val: Tensor) -> Tensor:
+def u(t_val, x_val, y_val, z_val):
     """
     Maps a 1D function f to the Maxwell solutions E and B
     using the specified second-order differential operators.

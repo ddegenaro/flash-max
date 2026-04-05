@@ -3,12 +3,12 @@ from typing import Callable, Union
 import torch
 
 def random_data(
-    num_samples: int = 100,
-    spatial_dim: int = 2,
-    mins: list[float] = [0., 0., 0.],
-    maxes: list[float] = [1., 1., 1.],
+    num_samples: int = 1000,
+    spatial_dim: int = 3,
+    mins: list[float] = [0., 0., 0., 0.],
+    maxes: list[float] = [0., 1., 1., 1.],
     f: Callable = None,
-    noise_scale: float = 1e-3,
+    noise_scale: float = 0,
     restrict_time: bool = False
 ) -> tuple[torch.Tensor, Union[torch.Tensor, None]]:
     
@@ -67,12 +67,12 @@ def random_data(
         return sample.transpose(0, -1), None
     
 def grid_data(
-    num_samples: int = 100,
-    spatial_dim: int = 2,
-    mins: list[float] = [0., 0., 0.],
-    maxes: list[float] = [1., 1., 1.],
+    num_samples: int = 1000,
+    spatial_dim: int = 3,
+    mins: list[float] = [0., 0., 0., 0.],
+    maxes: list[float] = [1., 1., 1., 1.],
     f: Callable = None,
-    noise_scale: float = 1e-3,
+    noise_scale: float = 0,
     restrict_time: bool = False
 ):
     """
