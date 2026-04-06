@@ -6,8 +6,7 @@ sqrt3 = torch.sqrt(torch.tensor(3))
 sqrt6 = torch.sqrt(torch.tensor(6))
 zero = torch.tensor(0.)
 
-# f_func = lambda s : torch.max(zero,torch.min(3.0*s,(1.0-3.0*s)))**3
-f_func = lambda s: torch.cos(s)
+f_func = lambda s : torch.max(zero,torch.min(3.0*s,(1.0-3.0*s)))**3
 
 def u(t, x, y, z):
     """

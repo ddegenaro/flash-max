@@ -50,22 +50,17 @@ def train_epoch(
         enum_val_loader = enumerate(val_loader)
 
     training_start = time()
-    for i, (inputs, targets) in enum_train_loader:
+    for i, (inputs, targets, mask) in enum_train_loader:
         
-        inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
+        inputs, targets, mask = inputs.to(DEVICE), targets.to(DEVICE), mask.to(DEVICE)
         
         for optimizer in optimizers:
             optimizer.zero_grad()
         
         outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-        # breakpoint()
-
-        if targets.shape != outputs.shape:
-            mse_loss = loss_fn(outputs, targets.unsqueeze(1))
-            print('WARN: loss')
-        else:
-            mse_loss = loss_fn(outputs, targets)
-        # print(model.Z_x['2-'][:, 305].tolist())
+        
+        mse_loss = loss_fn(outputs[mask], targets[mask])
+        
         mse_loss.backward()
         # clip_grad_norm_(model.parameters(), max_norm=1.0)
         for optimizer in optimizers:
@@ -86,15 +81,13 @@ def train_epoch(
 
     val_start = time()
     with torch.no_grad():
-        for i, (inputs, targets) in enum_val_loader:
+        for i, (inputs, targets, mask) in enum_val_loader:
             
-            inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
+            inputs, targets, mask = inputs.to(DEVICE), targets.to(DEVICE), mask.to(DEVICE)
             
             outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
-            if targets.shape != outputs.shape:
-                mse_loss = loss_fn(outputs, targets.unsqueeze(1))
-            else:
-                mse_loss = loss_fn(outputs, targets)
+            
+            mse_loss = loss_fn(outputs[mask], targets[mask])
 
             lv = mse_loss.item()
             total_loss_val += lv * targets.shape[0]
@@ -112,21 +105,22 @@ def main(args):
         data_fn = grid_data
     else:
         data_fn = random_data
+
         
-    # breakpoint()
-        
-    train_inputs, train_targets = data_fn(
+    train_inputs, train_targets, train_mask = data_fn(
         num_samples=args.n_train,
         spatial_dim=args.input_dim,
         mins=args.train_mins,
         maxes=args.train_maxes,
         f=u,
         noise_scale=args.noise_scale,
-        restrict_time=args.restrict_time
+        restrict_time=args.restrict_time,
+        add_bc=args.add_bc
     )
     
     if train_inputs.shape[0] != train_targets.shape[0]:
         train_targets = train_targets.reshape(train_inputs.shape[0], -1)
+        train_mask = train_mask.reshape(train_inputs.shape[0], -1)
     
     mu_inputs = train_inputs.mean(dim=0)
     sigma_inputs = train_inputs.std(dim=0)
@@ -146,23 +140,24 @@ def main(args):
 
     train_loader = DataLoader(
         TensorDataset(
-            train_inputs, train_targets
+            train_inputs, train_targets, train_mask
         ),
         batch_size=batch_size,
         shuffle=True
     )
     
-    val_inputs, val_targets = data_fn(
+    val_inputs, val_targets, val_mask = data_fn(
         num_samples=args.n_val,
         spatial_dim=args.input_dim,
         mins=args.val_mins,
         maxes=args.val_maxes,
         f=u,
         noise_scale=args.noise_scale
-    ) # restrict_time is False by default, desirable here.
+    ) # restrict_time and add_bc are False by default, desirable here.
     
     if val_inputs.shape[0] != val_targets.shape[0]:
         val_targets = val_targets.reshape(val_inputs.shape[0], -1)
+        val_mask = val_mask.reshape(val_inputs.shape[0], -1)
     
     if args.norm_inputs:
         val_inputs[:, 1:] = (val_inputs[:, 1:] - mu_inputs[1:].unsqueeze(0)) / sigma_inputs[1:].unsqueeze(0)
@@ -173,7 +168,7 @@ def main(args):
 
     val_loader = DataLoader(
         TensorDataset(
-            val_inputs, val_targets
+            val_inputs, val_targets, val_mask
         ),
         batch_size=batch_size,
         shuffle=True
@@ -416,7 +411,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--norm_inputs',
         action='store_true',
-        default=True,
+        default=False,
         help='Normalize inputs via z-scaling.'
     )
     parser.add_argument(
@@ -424,6 +419,12 @@ if __name__ == "__main__":
         action='store_true',
         default=True,
         help='Restrict the time inputs in training to be only the endpoints of the time interval.'
+    )
+    parser.add_argument(
+        '--add_bc',
+        action='store_true',
+        default=True,
+        help='Whether to use boundary conditions.'
     )
     parser.add_argument(
         '--train_mins',
@@ -436,21 +437,21 @@ if __name__ == "__main__":
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.0] + [0.5] * input_dim,
+        default=[1.0] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.0] + [0.2] * input_dim,
+        default=[0.0] + [0.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.005] + [0.4] * input_dim,
+        default=[1.0] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -477,7 +478,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=50_000,
+        default=1_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
@@ -554,12 +555,6 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Whether to use symlog loss.'
-    )
-    parser.add_argument(
-        '--bc',
-        action='store_true',
-        default=False,
-        help='Whether to use boundary samples only (and BC loss).'
     )
     # parser.add_argument(
     #     '--do',
