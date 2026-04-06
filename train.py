@@ -493,7 +493,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--activation',
         type=str,
-        default='cosine',
+        default='relu',
         help='Activation function to use.'
     )
     parser.add_argument(
@@ -529,7 +529,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=5e-2,
+        default=5e-1,
         help='Learning rate.'
     )
     parser.add_argument(
