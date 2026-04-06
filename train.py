@@ -493,7 +493,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--activation',
         type=str,
-        default='relu',
+        default='tanh',
         help='Activation function to use.'
     )
     parser.add_argument(
