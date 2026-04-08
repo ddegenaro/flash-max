@@ -6,7 +6,7 @@ def random_data(
     num_samples: int = 1000,
     spatial_dim: int = 3,
     mins: list[float] = [0., 0., 0., 0.],
-    maxes: list[float] = [0., 1., 1., 1.],
+    maxes: list[float] = [1., 1., 1., 1.],
     f: Callable = None,
     noise_scale: float = 0,
     restrict_time: bool = False,

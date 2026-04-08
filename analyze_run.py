@@ -88,6 +88,7 @@ for i in range(start, end+1):
     print(f'weight decay:  {data['wd']}')
     print(f'training:      {data['train_mins']} -> {data['train_maxes']}')
     print(f'validation:    {data['val_mins']} -> {data['val_maxes']}')
+    print(f'add_bc:        {data['add_bc']}')
 
     df = pd.read_csv(
         os.path.join('experiments', f'{i}', 'log.tsv'),
@@ -97,7 +98,7 @@ for i in range(start, end+1):
     df['rounded_error'] = df['rel_l2_error'].round(3)
 
     try:
-        first_epoch = int(df[df['rounded_error'] < 0.01].iloc[0]['epoch'])
+        first_epoch = int(df[df['rel_l2_error'] < 0.01].iloc[0]['epoch'])
 
         first_time = df[df['epoch'] <= first_epoch]['training_time'].sum().item()
 

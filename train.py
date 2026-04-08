@@ -292,30 +292,31 @@ def main(args):
                 
                 best_loss = mse_val
 
-                if epoch > 100 and rel_l2_error < args.tol: # must improve to break
-                    print(f'Stopping early at epoch {epoch+1} (mse {rel_l2_error} < args.tol {args.tol}).')
-                    break
-                
-                if epoch > 100 and len(last_k_errs) == k:
-                    last_k_errs_tensor = torch.tensor(last_k_errs)
-                    if torch.allclose(
-                        last_k_errs_tensor,
-                        last_k_errs_tensor.mean(),
-                        atol=args.atol
-                    ):
-                        print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
+                if args.early_stopping:
+                    if epoch > 100 and rel_l2_error < args.tol: # must improve to break
+                        print(f'Stopping early at epoch {epoch+1} (mse {rel_l2_error} < args.tol {args.tol}).')
                         break
-                    else:
-                        flags = []
-                        for i in range(1, len(last_k_errs)):
-                            if last_k_errs[i] > last_k_errs[i-1]:
-                                flags.append(True)
-                            else:
-                                flags.append(False)
-                                break
-                        if all(flags):
+                    
+                    if epoch > 100 and len(last_k_errs) == k:
+                        last_k_errs_tensor = torch.tensor(last_k_errs)
+                        if torch.allclose(
+                            last_k_errs_tensor,
+                            last_k_errs_tensor.mean(),
+                            atol=args.atol
+                        ):
                             print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
                             break
+                        else:
+                            flags = []
+                            for i in range(1, len(last_k_errs)):
+                                if last_k_errs[i] > last_k_errs[i-1]:
+                                    flags.append(True)
+                                else:
+                                    flags.append(False)
+                                    break
+                            if all(flags):
+                                print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
+                                break
                 
             if len(last_k_errs) == k:
                 del last_k_errs[0]
@@ -529,7 +530,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--lr',
         type=float,
-        default=5e-1,
+        default=5e-2,
         help='Learning rate.'
     )
     parser.add_argument(
@@ -555,6 +556,12 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Whether to use symlog loss.'
+    )
+    parser.add_argument(
+        '--early_stopping',
+        action='store_true',
+        default=False,
+        help='Whether to use early stopping.'
     )
     # parser.add_argument(
     #     '--do',
