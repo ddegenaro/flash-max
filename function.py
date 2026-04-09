@@ -4,8 +4,11 @@ from torch import Tensor
 
 c = 1.0
 
-_k = torch.randn((100, 3)) * math.sqrt(0.1)
-_b = torch.randn(100)
+generator = torch.Generator()
+generator.manual_seed(42)
+
+_k = torch.randn((100, 3), generator=generator) * math.sqrt(0.1)
+_b = torch.randn(100, generator=generator)
 _omega = torch.sqrt(_k[:, 0]**2 + _k[:, 1]**2 + _k[:, 2]**2)
 
 def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
