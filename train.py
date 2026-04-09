@@ -21,7 +21,7 @@ except:
     pass
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
-from utils import DEVICE, PCNN
+from utils import get_device, PCNN
 from symlog import symlog
 
 seed = 42
@@ -41,7 +41,8 @@ def train_epoch(
     epoch: int,
     epochs: int,
     log_freq: int,
-    verbose: bool
+    verbose: bool,
+    device: str
 ) -> float:
     
     es = epoch + 1
@@ -60,7 +61,7 @@ def train_epoch(
     training_start = time()
     for i, (inputs, targets, mask) in enum_train_loader:
         
-        inputs, targets, mask = inputs.to(DEVICE), targets.to(DEVICE), mask.to(DEVICE)
+        inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
         
         for optimizer in optimizers:
             optimizer.zero_grad()
@@ -91,7 +92,7 @@ def train_epoch(
     with torch.no_grad():
         for i, (inputs, targets, mask) in enum_val_loader:
             
-            inputs, targets, mask = inputs.to(DEVICE), targets.to(DEVICE), mask.to(DEVICE)
+            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
             
             outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
             
@@ -114,7 +115,6 @@ def main(args):
     else:
         data_fn = random_data
 
-        
     train_inputs, train_targets, train_mask = data_fn(
         num_samples=args.n_train,
         spatial_dim=args.input_dim,
@@ -184,6 +184,8 @@ def main(args):
 
     model_class = eval(args.model_class)
     
+    device = get_device(args.use_cpu)
+    
     model: PCNN = model_class(
         width=args.width,
         c=args.c,
@@ -192,7 +194,7 @@ def main(args):
         activation=args.activation,
         # dropout_val=args.do,
         init=args.init
-    ).to(DEVICE)
+    ).to(device)
 
     if args.bilevel:
         if args.inner_lr == args.outer_lr:
@@ -260,7 +262,7 @@ def main(args):
     k = args.k
     last_k_errs = []
     
-    print(f'(Exp. {this_experiment}) Training {model_class.__name__} on {DEVICE}...')
+    print(f'(Exp. {this_experiment}) Training {model_class.__name__} on {device}...')
     for key, value in hparams.items():
         print(f'\t{key}: {value}')
 
@@ -279,7 +281,8 @@ def main(args):
                 epoch=epoch,
                 epochs=args.max_epochs,
                 log_freq=args.log_freq,
-                verbose=args.verbose
+                verbose=args.verbose,
+                device=device
             )
             
             # TODO: CHECK VALIDITY OF THIS
@@ -430,40 +433,6 @@ if __name__ == "__main__":
         help='Restrict the time inputs in training to be only the endpoints of the time interval.'
     )
     parser.add_argument(
-        '--add_bc',
-        action='store_true',
-        default=True,
-        help='Whether to use boundary conditions.'
-    )
-    parser.add_argument(
-        '--train_mins',
-        type=float,
-        nargs='+',
-        default=[0.0] + [0.0] * input_dim,
-        help='Minimum value for each dimension. First dimension interpreted as time.'
-    )
-    parser.add_argument(
-        '--train_maxes',
-        type=float,
-        nargs='+',
-        default=[1.0] + [1.0] * input_dim,
-        help='Maximum value for each dimension. First dimension interpreted as time.'
-    )
-    parser.add_argument(
-        '--val_mins',
-        type=float,
-        nargs='+',
-        default=[0.0] + [0.0] * input_dim,
-        help='Minimum value for each dimension. First dimension interpreted as time.'
-    )
-    parser.add_argument(
-        '--val_maxes',
-        type=float,
-        nargs='+',
-        default=[1.0] + [1.0] * input_dim,
-        help='Maximum value for each dimension. First dimension interpreted as time.'
-    )
-    parser.add_argument(
         '--data_from_lattice',
         action='store_true',
         default=False,
@@ -481,29 +450,11 @@ if __name__ == "__main__":
         default='kaiming',
         help='Normal or Kaiming initialization.'
     )
-    
-    # ABOVE GENERALLY FIXED
-    
-    parser.add_argument(
-        '--n_train',
-        type=int,
-        default=1_000,
-        help='Number of samples to generate for training. Default 1,000.'
-    )
     parser.add_argument(
         '--noise_scale',
         type=float,
         default=0,
         help='Standard deviation of the noise to be added.'
-    )
-    
-    # ABOVE FIXED PER EXPERIMENT
-    
-    parser.add_argument(
-        '--activation',
-        type=str,
-        default='tanh',
-        help='Activation function to use.'
     )
     parser.add_argument(
         '--inner_lr',
@@ -536,30 +487,6 @@ if __name__ == "__main__":
         help='Use different optimizers for the two layers.'
     )
     parser.add_argument(
-        '--lr',
-        type=float,
-        default=5e-2,
-        help='Learning rate.'
-    )
-    parser.add_argument(
-        '--wd',
-        type=float,
-        default=5e-5,
-        help='Weight decay.'
-    )
-    parser.add_argument(
-        '--batch_size',
-        type=int,
-        default=1_000,
-        help='Batch size for training and validation. Default 1_000.'
-    )
-    parser.add_argument(
-        '--width',
-        type=int,
-        default=1_000,
-        help='Width of the hidden layer of the neural network. Default 1000.'
-    )
-    parser.add_argument(
         '--symlog',
         action='store_true',
         default=False,
@@ -577,6 +504,88 @@ if __name__ == "__main__":
     #     default=0.0,
     #     help='Dropout probability.'
     # )
+    
+    # ABOVE GENERALLY FIXED
+    
+    parser.add_argument(
+        '--n_train',
+        type=int,
+        default=1_000,
+        help='Number of samples to generate for training. Default 1,000.'
+    )
+    parser.add_argument(
+        '--batch_size',
+        type=int,
+        default=1_000,
+        help='Batch size for training and validation. Default 1_000.'
+    )
+    parser.add_argument(
+        '--width',
+        type=int,
+        default=1_000,
+        help='Width of the hidden layer of the neural network. Default 1000.'
+    )
+    parser.add_argument(
+        '--activation',
+        type=str,
+        default='tanh',
+        help='Activation function to use.'
+    )
+    parser.add_argument(
+        '--lr',
+        type=float,
+        default=5e-2,
+        help='Learning rate.'
+    )
+    parser.add_argument(
+        '--wd',
+        type=float,
+        default=5e-5,
+        help='Weight decay.'
+    )
+    
+    # ABOVE OF LESS CONCERN, ABLATIONS ETC.
+    
+    parser.add_argument(
+        '--use_cpu',
+        action='store_true',
+        default=False,
+        help='Whether to train on CPU.'
+    )
+    parser.add_argument(
+        '--add_bc',
+        action='store_true',
+        default=False,
+        help='Whether to use boundary conditions.'
+    )
+    parser.add_argument(
+        '--train_mins',
+        type=float,
+        nargs='+',
+        default=[0.0] + [0.0] * input_dim,
+        help='Minimum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--train_maxes',
+        type=float,
+        nargs='+',
+        default=[0.0] + [1.0] * input_dim,
+        help='Maximum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--val_mins',
+        type=float,
+        nargs='+',
+        default=[0.0] + [0.2] * input_dim,
+        help='Minimum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--val_maxes',
+        type=float,
+        nargs='+',
+        default=[0.1] + [0.8] * input_dim,
+        help='Maximum value for each dimension. First dimension interpreted as time.'
+    )
 
     args = parser.parse_args()
     validate(args)

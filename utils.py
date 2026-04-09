@@ -1,12 +1,18 @@
 import torch
 from torch import nn
 
-if torch.backends.mps.is_available():
-    DEVICE = 'mps'
-elif torch.cuda.is_available():
-    DEVICE = 'cuda:1'
-else:
-    DEVICE = 'cpu'
+
+def get_device(use_cpu):
+    
+    if use_cpu:
+        return 'cpu'
+    else:
+        if torch.backends.mps.is_available():
+            return 'mps'
+        elif torch.cuda.is_available():
+            return 'cuda'
+        else:
+            return 'cpu'
     
 def tensor_round(tensor: torch.Tensor, prec: int = 4):
     return [round(x.item(), prec) for x in tensor]
