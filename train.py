@@ -4,7 +4,9 @@ import shutil
 import argparse
 from time import time
 from inspect import signature
+import random
 
+import numpy as np
 from tqdm import tqdm
 import torch
 from torch import nn
@@ -22,7 +24,13 @@ from maxwell_equation import Maxwell, MaxwellSimple
 from utils import DEVICE, PCNN
 from symlog import symlog
 
-torch.manual_seed(42)
+seed = 42
+
+torch.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
+random.seed(seed)
+np.random.seed(seed)
+torch.backends.cudnn.deterministic = True
 
 def train_epoch(
     train_loader: DataLoader,
