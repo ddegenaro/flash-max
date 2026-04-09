@@ -14,7 +14,6 @@ from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, TensorDataset
 
 from data_sampler import random_data, grid_data
-from function import u, c
 try:
     from function import p_array
 except:
@@ -123,6 +122,17 @@ def main(args):
 
     print(f'Beginning training.')
     
+    if args.soln == 1:
+        shutil.copyfile(os.path.join('neurips_functions', 'f1_plane_waves.py'), 'function.py')
+    elif args.soln == 1:
+        shutil.copyfile(os.path.join('neurips_functions', 'f2_radial_waves.py'), 'function.py')
+    elif args.soln == 1:
+        shutil.copyfile(os.path.join('neurips_functions', 'f3_hopf_vibration.py'), 'function.py')
+    elif args.soln == 1:
+        shutil.copyfile(os.path.join('neurips_functions', 'f4_random_sol.py'), 'function.py')
+    
+    from function import u, c
+    
     # whether to sample random points or use a grid
     if args.data_from_lattice:
         data_fn = grid_data
@@ -141,6 +151,8 @@ def main(args):
         restrict_time=args.restrict_time,
         add_bc=args.add_bc
     )
+    
+    breakpoint()
     
     # ensure input-target pairs are matched up on dim 0
     if train_inputs.shape[0] != train_targets.shape[0]:
@@ -218,7 +230,7 @@ def main(args):
     # init model
     model: PCNN = model_class(
         width=args.width,
-        c=args.c,
+        c=c,
         input_dim=args.input_dim,
         output_dim=args.output_dim,
         activation=args.activation,
@@ -269,6 +281,7 @@ def main(args):
 
     # write hyperparameters to file
     hparams = vars(args)
+    hparams['c'] = c
     hparams['param_count'] = sum([p.numel() for p in model.parameters()])
     hparams['mu_inputs'] = mu_inputs.tolist()
     hparams['sigma_inputs'] = sigma_inputs.tolist()
@@ -385,7 +398,6 @@ def validate(args):
     assert args.n_val > 0
     assert args.batch_size > 0
     assert args.width > 0
-    assert args.c > 0
     assert args.input_dim > 0
     assert args.output_dim > 0
     assert args.max_epochs > 0
@@ -398,22 +410,15 @@ def validate(args):
         assert args.val_mins[i] <= args.val_maxes[i]
 
 if __name__ == "__main__":
-
-    # inferring dimension (2d or 3d) from f
-    input_dim = len(signature(u).parameters) - 1
+    
+    input_dim = 3
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--c',
-        type=float,
-        default=c,
-        help='Speed of propagation in the medium. Default inferred from function.py.'
-    )
     parser.add_argument(
         '--input_dim',
         type=int,
         default=input_dim,
-        help='Number of spatial dimensions to be input. Default inferred from function.py.'
+        help='Number of spatial dimensions to be input. Default 3.'
     )
     parser.add_argument(
         '--output_dim',
@@ -628,6 +633,12 @@ if __name__ == "__main__":
         nargs='+',
         default=[0.1] + [0.8] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
+    )
+    parser.add_argument(
+        '--soln',
+        type=int,
+        default=1,
+        help='Which solution to work with. (1-4). 0 means use whatever is in function.py as is.'
     )
 
     args = parser.parse_args()
