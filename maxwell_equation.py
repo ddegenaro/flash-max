@@ -16,7 +16,8 @@ class MaxwellSimple(PCNN):
         output_dim: int = -1,
         activation: str = 'relu',
         # dropout_val: float = 0.1,
-        init = 'kaiming'
+        init = 'kaiming',
+        keys = ('1+', '1-', '2+', '2-')
     ):
         
         super().__init__(
@@ -29,11 +30,13 @@ class MaxwellSimple(PCNN):
             init=init
         )
         
-        self.Z_x = nn.ParameterDict()
+        self.Z_x = nn.ParameterDict() # Z_1, Z_2, Z_3
         self.W = nn.ParameterDict()
         self.b = nn.ParameterDict()
         
-        for key in ('1+', '1-', '2+', '2-'):
+        self.keys = keys
+        
+        for key in self.keys:
             self.Z_x[key] = nn.Parameter(torch.zeros(3, self.width))
             self.W[key] = nn.Parameter(torch.zeros(1, self.width))
             self.b[key] = nn.Parameter(torch.zeros(1, self.width))
@@ -46,11 +49,11 @@ class MaxwellSimple(PCNN):
         
         R = 0.
         
-        for key in ('1+', '1-', '2+', '2-'):
+        for key in self.keys:
             
             Z = torch.vstack((
-                torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True) + 1e-10),
-                self.Z_x[key]
+                torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True) + 1e-10), # Z_0
+                self.Z_x[key] # Z_1, Z_2, Z_3
             ))
         
             A = self.activation(X @ Z + self.b[key]) * self.W[key]

@@ -71,16 +71,22 @@ for i in range(start, end+1):
     if args.noise_scale is not None and data['noise_scale'] != args.noise_scale:
         continue
 
-    # with open(os.path.join(exp_dir, 'f.py'), 'r') as f:
-    #     if re.findall(r'#\W+R =', f.read()):
-    #         func = 'plane waves'
-    #     else:
-    #         func = 'radial'
-    # if args.func is not None and func != args.func:
-    #     continue
+    with open(os.path.join(exp_dir, 'f.py'), 'r') as f:
+        if re.findall(r'Plane waves', f.read()):
+            func = 'Plane waves'
+        if re.findall(r'Radial waves', f.read()):
+            func = 'Radial waves'
+        if re.findall(r'Hopf vibration', f.read()):
+            func = 'Hopf vibration'
+        if re.findall(r'Random solution', f.read()):
+            func = 'Random solution'
+        else:
+            func = 'Other'
+    if args.func is not None and func != args.func:
+        continue
     
     print(f'Processing experiment {i}...')
-    # print(f'function:      {func}')
+    print(f'function:      {func}')
     print(f'training size: {data['n_train']}')
     print(f'width:         {data['width']}')
     print(f'noise scale:   {data['noise_scale']}')
