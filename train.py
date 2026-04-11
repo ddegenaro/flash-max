@@ -23,14 +23,6 @@ from maxwell_equation import Maxwell, MaxwellSimple
 from utils import get_device, PCNN
 from symlog import symlog
 
-seed = 42
-
-torch.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)
-random.seed(seed)
-np.random.seed(seed)
-torch.backends.cudnn.deterministic = True
-
 def train_epoch(
     train_loader: DataLoader,
     val_loader: DataLoader,
@@ -119,16 +111,24 @@ def train_epoch(
     return (total_loss_train / num_train_examples), (total_loss_val / num_val_examples), training_time, val_time
 
 def main(args):
+    
+    seed = args.seed
+
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.deterministic = True
 
     print(f'Beginning training.')
     
     if args.soln == 1:
         shutil.copyfile(os.path.join('neurips_functions', 'f1_plane_waves.py'), 'function.py')
-    elif args.soln == 1:
+    elif args.soln == 2:
         shutil.copyfile(os.path.join('neurips_functions', 'f2_radial_waves.py'), 'function.py')
-    elif args.soln == 1:
+    elif args.soln == 3:
         shutil.copyfile(os.path.join('neurips_functions', 'f3_hopf_vibration.py'), 'function.py')
-    elif args.soln == 1:
+    elif args.soln == 4:
         shutil.copyfile(os.path.join('neurips_functions', 'f4_random_sol.py'), 'function.py')
     
     from function import u, c
@@ -151,8 +151,6 @@ def main(args):
         restrict_time=args.restrict_time,
         add_bc=args.add_bc
     )
-    
-    breakpoint()
     
     # ensure input-target pairs are matched up on dim 0
     if train_inputs.shape[0] != train_targets.shape[0]:
@@ -545,6 +543,12 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Whether to use early stopping.'
+    )
+    parser.add_argument(
+        '--seed',
+        type=int,
+        default=42,
+        help='Random seed.'
     )
     # parser.add_argument(
     #     '--do',
