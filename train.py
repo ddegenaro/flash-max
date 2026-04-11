@@ -33,7 +33,8 @@ def train_epoch(
     epochs: int,
     log_freq: int,
     verbose: bool,
-    device: str
+    device: str,
+    preload_data: bool
 ) -> float:
     
     # log message
@@ -59,7 +60,8 @@ def train_epoch(
     for i, (inputs, targets, mask) in enum_train_loader:
         
         # move to GPU if needed
-        inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+        if not preload_data:
+            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
         
         # zero all optimizers (in case using bi-level)
         for optimizer in optimizers:
@@ -95,7 +97,8 @@ def train_epoch(
     with torch.no_grad():
         for i, (inputs, targets, mask) in enum_val_loader:
             
-            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+            if not preload_data:
+                inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
             
             outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
             
@@ -176,6 +179,14 @@ def main(args):
         batch_size = args.n_train
     else:
         batch_size = args.batch_size
+        
+    # retrieve appropriate gpu name if using, else cpu
+    device = get_device(args.use_cpu)
+        
+    if args.preload_data:
+        train_inputs = train_inputs.to(device)
+        train_targets = train_targets.to(device)
+        train_mask = train_mask.to(device)
 
     # load into loader
     train_loader = DataLoader(
@@ -209,6 +220,11 @@ def main(args):
     
     # mean function value on validation set for L2 error
     mean_val_f = (val_targets ** 2).mean()
+    
+    if args.preload_data:
+        val_inputs = val_inputs.to(device)
+        val_targets = val_targets.to(device)
+        val_mask = val_mask.to(device)
 
     # load into validation loader
     val_loader = DataLoader(
@@ -221,9 +237,6 @@ def main(args):
 
     # easy way to get model from string name
     model_class = eval(args.model_class)
-    
-    # retrieve appropriate gpu name if using, else cpu
-    device = get_device(args.use_cpu)
     
     # init model
     model: PCNN = model_class(
@@ -333,7 +346,8 @@ def main(args):
                 epochs=args.max_epochs,
                 log_freq=args.log_freq,
                 verbose=args.verbose,
-                device=device
+                device=device,
+                preload_data=args.preload_data
             )
             
             # TODO: CHECK VALIDITY OF THIS
@@ -603,6 +617,12 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Whether to train on CPU.'
+    )
+    parser.add_argument(
+        '--preload_data',
+        action='store_true',
+        default=True,
+        help='Move all train and val tensors to device before training.'
     )
     parser.add_argument(
         '--add_bc',
