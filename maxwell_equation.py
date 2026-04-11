@@ -51,10 +51,16 @@ class MaxwellSimple(PCNN):
         
         for key in self.keys:
             
-            Z = torch.vstack((
-                torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True) + 1e-10), # Z_0
-                self.Z_x[key] # Z_1, Z_2, Z_3
-            ))
+            if '+' in key:
+                Z = torch.vstack((
+                    torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True) + 1e-10), # Z_0
+                    self.Z_x[key] # Z_1, Z_2, Z_3
+                ))
+            elif '-' in key:
+                Z = torch.vstack((
+                    -torch.sqrt((self.Z_x[key] ** 2).sum(0, keepdim=True) + 1e-10), # Z_0
+                    self.Z_x[key] # Z_1, Z_2, Z_3
+                ))
         
             A = self.activation(X @ Z + self.b[key]) * self.W[key]
 
