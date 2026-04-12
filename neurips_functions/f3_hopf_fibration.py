@@ -3,7 +3,7 @@ from torch import Tensor
 
 c = 1.0
 
-# Hopf vibration
+# Hopf fibration
 
 def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
     """

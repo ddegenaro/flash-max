@@ -15,3 +15,6 @@ At run 436, fixed a bug that activation was not being passed to the model at tra
 436 = first successful visualization of Maxwell, with cosine as activation.
 
 For 4/2 meeting: 628 (sol 1), 636 (sol 3), 646 (sol 4)
+
+As of 4/12:
+- data_analysis.ipynb has two sets of 80 experiments queued up. First set had a mistake (sign of Z_0). Second set fixed this, and additionally tried to preload data. No improvement from preloading.

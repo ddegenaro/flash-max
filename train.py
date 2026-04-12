@@ -621,7 +621,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--preload_data',
         action='store_true',
-        default=True,
+        default=False,
         help='Move all train and val tensors to device before training.'
     )
     parser.add_argument(
