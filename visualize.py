@@ -13,9 +13,8 @@ from matplotlib import animation
 
 from wave_equation import Wave, WaveSimplified
 from maxwell_equation import Maxwell, MaxwellSimple
-from utils import DEVICE
+from utils import get_device
 from symlog import symexp
-# DEVICE = 'cpu'
 
 def main(args):
     
@@ -41,6 +40,8 @@ def main(args):
     
     is_3d_input = (input_dim == 3)
     double_quiver = (output_dim == 6)
+    
+    DEVICE = get_device(use_cpu=False)
 
     model_class = eval(hparams['model_class'])
     model = model_class(
