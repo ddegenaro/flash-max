@@ -655,7 +655,7 @@ if __name__ == "__main__":
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[1e-8] + [1.0] * input_dim,
+        default=[0.2] + [0.8] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
