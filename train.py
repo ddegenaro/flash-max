@@ -648,20 +648,20 @@ if __name__ == "__main__":
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.0] + [0.2] * input_dim,
+        default=[0.0] + [0.0] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.1] + [0.8] * input_dim,
+        default=[1e-8] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--soln',
         type=int,
-        default=1,
+        default=0,
         help='Which solution to work with. (1-4). 0 means use whatever is in function.py as is.'
     )
 

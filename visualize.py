@@ -66,6 +66,8 @@ def main(args):
     
     if args.length is None:
         length = (maxes[1] - mins[1]) / sr / 1.5
+        
+    # breakpoint()
     
     input_cols = [torch.arange(mins[0], maxes[0], (maxes[0] - mins[0]) / tr)] + [
         torch.arange(start, end, (end - start) / sr)
@@ -225,6 +227,8 @@ def main(args):
                 
                 E_magnitude = torch.sqrt((Us[key]['E']**2).sum(2))
                 B_magnitude = torch.sqrt((Us[key]['B']**2).sum(2))
+                
+                # breakpoint()
                 
                 if plot_true_sol and not args.trueonly:
                     E_norm = plt.Normalize(vmin=E_magnitude.min(), vmax=E_magnitude.max())
