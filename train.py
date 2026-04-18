@@ -5,6 +5,7 @@ import argparse
 from time import time
 from inspect import signature
 import random
+from math import sqrt
 
 import numpy as np
 from tqdm import tqdm
@@ -219,7 +220,7 @@ def main(args):
         assert not val_inputs.isnan().any().item() and not val_targets.isnan().any().item()
     
     # mean function value on validation set for L2 error
-    mean_val_f_sq = (val_targets ** 2).mean()
+    mean_val_f_sq = (val_targets ** 2).mean().item()
     
     if args.preload_data:
         val_inputs = val_inputs.to(device)
@@ -353,7 +354,7 @@ def main(args):
             # TODO: CHECK VALIDITY OF THIS
             if mean_val_f_sq == 0:
                 mean_val_f_sq += 1e-10
-            rel_l2_error = mse_val / mean_val_f_sq # relative L2 error
+            rel_l2_error = sqrt(mse_val) / sqrt(mean_val_f_sq) # relative L2 error
             
             fp.write( # log immediately, don't wait, it doesn't count towards training time
                 f'{epoch+1}\t{mse_train}\t{mse_val}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
