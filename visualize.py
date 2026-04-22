@@ -214,6 +214,7 @@ def main(args):
             print('Writing frames...')
             
             print(f'True sol: {plot_true_sol}')
+            # breakpoint()
             print(f'E: {Us[key]["E"].nanmean()}, {torch.isnan(Us[key]["E"]).sum().item()} nan')
             print(f'B: {Us[key]["B"].nanmean()}, {torch.isnan(Us[key]["B"]).sum().item()} nan')
             

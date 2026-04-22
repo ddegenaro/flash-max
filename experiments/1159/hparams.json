@@ -1,0 +1,92 @@
+{
+    "input_dim": 3,
+    "output_dim": 6,
+    "max_epochs": 10000,
+    "log_freq": 100,
+    "verbose": false,
+    "tol": 0.0001,
+    "atol": 0.0001,
+    "k": 10,
+    "model_class": "MaxwellSimple",
+    "norm_inputs": false,
+    "restrict_time": true,
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "init": "xavier normal",
+    "noise_scale": 0,
+    "inner_lr": 0.01,
+    "inner_wd": 5e-06,
+    "outer_lr": 0.01,
+    "outer_wd": 5e-05,
+    "bilevel": false,
+    "symlog": false,
+    "early_stopping": false,
+    "seed": 3,
+    "n_train": 2000,
+    "batch_size": 2000,
+    "width": 10000,
+    "activation": "tanh",
+    "lr": 0.05,
+    "wd": 5e-05,
+    "use_cpu": false,
+    "preload_data": false,
+    "add_bc": false,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        0.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.2,
+        0.2,
+        0.2
+    ],
+    "val_maxes": [
+        0.1,
+        0.8,
+        0.8,
+        0.8
+    ],
+    "soln": 1,
+    "scheduler": "cosine",
+    "eta_min": 0.0,
+    "T_max_factor": 1.0,
+    "c": 1.0,
+    "param_count": 200000,
+    "mu_inputs": [
+        0.0,
+        0.5023433566093445,
+        0.49185436964035034,
+        0.49547135829925537
+    ],
+    "sigma_inputs": [
+        0.0,
+        0.2860400676727295,
+        0.2907528877258301,
+        0.29155561327934265
+    ],
+    "mu_targets": [
+        0.02393157221376896,
+        0.03074953891336918,
+        0.0183628611266613,
+        0.014782074838876724,
+        -0.03806565701961517,
+        0.0183628611266613
+    ],
+    "sigma_targets": [
+        0.29928675293922424,
+        0.20178121328353882,
+        0.28494948148727417,
+        0.26071712374687195,
+        0.24729852378368378,
+        0.28494948148727417
+    ]
+}

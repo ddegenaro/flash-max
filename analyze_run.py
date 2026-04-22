@@ -32,10 +32,10 @@ parser.add_argument(
     help='Value of noise_scale to restrict to.'
 )
 parser.add_argument(
-    '--func', '-f',
-    type=str,
+    '--soln',
+    type=int,
     default=None,
-    help='Kind of function to restrict to.'
+    help='Solution number to restrict to.'
 )
 parser.add_argument(
     '--just', '-j',
@@ -62,44 +62,37 @@ for i in range(start, end+1):
     exp_dir = os.path.join('experiments', f'{i}')
     
     if not os.path.exists(exp_dir):
+        print(f'no such experiment: {i}')
         continue
 
     data = json.load(open(os.path.join(exp_dir, 'hparams.json')))
     
-    if args.n_train is not None and data['n_train'] != args.n_train:
-        continue
-    if args.noise_scale is not None and data['noise_scale'] != args.noise_scale:
-        continue
-
-    with open(os.path.join(exp_dir, 'f.py'), 'r') as f:
-        if re.findall(r'Plane waves', f.read()):
-            func = 'Plane waves'
-        if re.findall(r'Radial waves', f.read()):
-            func = 'Radial waves'
-        if re.findall(r'Hopf vibration', f.read()):
-            func = 'Hopf vibration'
-        if re.findall(r'Random solution', f.read()):
-            func = 'Random solution'
-        else:
-            func = 'Other'
-    if args.func is not None and func != args.func:
-        continue
-    
-    print(f'Processing experiment {i}...')
-    print(f'function:      {func}')
-    print(f'training size: {data['n_train']}')
-    print(f'width:         {data['width']}')
-    print(f'noise scale:   {data['noise_scale']}')
-    print(f'learning rate: {data['lr']}')
-    print(f'weight decay:  {data['wd']}')
-    print(f'training:      {data['train_mins']} -> {data['train_maxes']}')
-    print(f'validation:    {data['val_mins']} -> {data['val_maxes']}')
-    print(f'add_bc:        {data['add_bc']}')
-
     df = pd.read_csv(
         os.path.join('experiments', f'{i}', 'log.tsv'),
         sep = '\t'
     )
+    
+    if len(df) < 200:
+        continue
+    
+    print(f'Processing experiment {i}...')
+    print(f'soln:         {data['soln']}')
+    print(f'seed:         {data['seed']}')
+    print(f'add_bc:       {data['add_bc']}')
+    print(f'n_train:      {data['n_train']}')
+    print(f'width:        {data['width']}')
+    # print(f'noise scale:   {data['noise_scale']}')
+    print(f'lr:           {data['lr']}')
+    print(f'wd:           {data['wd']}')
+    print(f'T_max_factor: {data['T_max_factor']}')
+    print(f'eta_min:      {data['eta_min']}')
+    # print(f'activation:    {data['activation']}')
+    # print(f'init:          {data['init']}')
+    # print(f'training:      {data['train_mins']} -> {data['train_maxes']}')
+    # print(f'validation:    {data['val_mins']} -> {data['val_maxes']}')
+    # print(f'add_bc:        {data['add_bc']}')
+
+    
 
     df['rounded_error'] = df['rel_l2_error'].round(3)
 

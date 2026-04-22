@@ -1,0 +1,97 @@
+{
+    "input_dim": 3,
+    "output_dim": 6,
+    "max_epochs": 10000,
+    "log_freq": 100,
+    "verbose": false,
+    "restart_patience": 10,
+    "restart_tolerance": 0.1,
+    "restarts": false,
+    "model_class": "MaxwellSimple",
+    "norm_inputs": false,
+    "restrict_time": true,
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "init": "xavier normal",
+    "noise_scale": 0,
+    "inner_lr": 0.01,
+    "inner_wd": 5e-06,
+    "outer_lr": 0.01,
+    "outer_wd": 5e-05,
+    "bilevel": false,
+    "symlog": false,
+    "early_stopping": false,
+    "seed": 42,
+    "do": 0.0,
+    "n_train": 7000,
+    "batch_size": 7000,
+    "width": 1000,
+    "activation": "tanh",
+    "lr": 0.5,
+    "wd": 5e-05,
+    "beta1": 0.9,
+    "beta2": 0.9,
+    "max_norm": Infinity,
+    "use_cpu": false,
+    "preload_data": true,
+    "add_bc": true,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "val_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "soln": 2,
+    "scheduler": "cosine",
+    "eta_min": 0.005,
+    "T_max_factor": 1.0,
+    "gain": 1.0,
+    "c": 1.0,
+    "param_count": 20000,
+    "mu_inputs": [
+        0.4313303828239441,
+        0.4951457977294922,
+        0.4978405833244324,
+        0.5064763426780701
+    ],
+    "sigma_inputs": [
+        0.31964191794395447,
+        0.36128127574920654,
+        0.36229416728019714,
+        0.36096739768981934
+    ],
+    "mu_targets": [
+        -0.07999560236930847,
+        0.06554897874593735,
+        0.06273331493139267,
+        0.06360693275928497,
+        -0.0842689722776413,
+        0.06273331493139267
+    ],
+    "sigma_targets": [
+        0.661728024482727,
+        0.5228792428970337,
+        0.7111304402351379,
+        0.5142058730125427,
+        0.6681525111198425,
+        0.7111304402351379
+    ]
+}

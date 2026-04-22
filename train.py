@@ -13,6 +13,12 @@ import torch
 from torch import nn
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, TensorDataset
+from torch.optim.lr_scheduler import (
+    CosineAnnealingLR,
+    CosineAnnealingWarmRestarts,
+    SequentialLR,
+    LinearLR
+)
 
 from data_sampler import random_data, grid_data
 try:
@@ -24,11 +30,17 @@ from maxwell_equation import Maxwell, MaxwellSimple
 from utils import get_device, PCNN
 from symlog import symlog
 
+def reset_optimizer(optimizer):
+    for group in optimizer.param_groups:
+        for p in group['params']:
+            optimizer.state[p] = {}
+
 def train_epoch(
     train_loader: DataLoader,
     val_loader: DataLoader,
     model: nn.Module,
     optimizers: tuple[torch.optim.AdamW],
+    schedulers: list[SequentialLR],
     loss_fn: torch.nn.MSELoss,
     epoch: int,
     epochs: int,
@@ -57,62 +69,72 @@ def train_epoch(
         enum_train_loader = enumerate(train_loader)
         enum_val_loader = enumerate(val_loader)
 
-    training_start = time() # start timing
-    for i, (inputs, targets, mask) in enum_train_loader:
+    start_train = time() # start timing
+    for i, (inputs_train, targets_train, mask_train) in enum_train_loader:
         
         # move to GPU if needed
         if not preload_data:
-            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+            inputs_train, targets_train, mask_train = inputs_train.to(device), targets_train.to(device), mask_train.to(device)
         
         # zero all optimizers (in case using bi-level)
         for optimizer in optimizers:
             optimizer.zero_grad()
         
         # forward pass
-        outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
+        outputs_train = model(inputs_train[:, 0].unsqueeze(1), inputs_train[:, 1:])
         
         # mask is important when using boundary conditions, else it's all True
-        mse_loss = loss_fn(outputs[mask], targets[mask])
-        
-        mse_loss.backward()
-        # clip_grad_norm_(model.parameters(), max_norm=1.0)
+        mse_loss_train = loss_fn(outputs_train[mask_train], targets_train[mask_train])
+        mse_loss_train.backward()
+        if args.max_norm < float('inf'):
+            clip_grad_norm_(model.parameters(), max_norm=args.max_norm)
+            
         for optimizer in optimizers:
             optimizer.step()
 
+        for scheduler in schedulers:
+            scheduler.step()
+
         # loss
-        lv = mse_loss.item()
-        total_loss_train += lv * targets.shape[0] # times number of examples in case differing batch sizes
-        num_train_examples += targets.shape[0]
+        lv_train = mse_loss_train.item()
+        # print(f'Epoch: {es:02d} - Loss: {lv:.4f} - Grad Norm: {grad_norm:.4f} - Update Norm: {update_norm:.4f}')
+        total_loss_train += lv_train * targets_train.shape[0] # times number of examples in case differing batch sizes
+        num_train_examples += targets_train.shape[0]
         s = i + 1
         if s % log_freq == 0: # console log
             al = total_loss_train / s
-            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv:.4f} - Val Loss: {lv:.4f} - Avg: {al:.4f}')
-    training_time = time() - training_start # stop timing
+            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv_train:.4f} - Val Loss: {lv_train:.4f} - Avg: {al:.4f}')
+    time_train = time() - start_train # stop timing
+    
+    # breakpoint()
 
     # validation, same setup
     model.eval()
     total_loss_val = 0.
     num_val_examples = 0
 
-    val_start = time()
+    start_val = time()
     with torch.no_grad():
-        for i, (inputs, targets, mask) in enum_val_loader:
+        for i, (inputs_val, targets_val, _) in enum_val_loader:
             
             if not preload_data:
-                inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+                inputs_val, targets_val = inputs_val.to(device), targets_val.to(device)
             
-            outputs = model(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
+            outputs_val = model(inputs_val[:, 0].unsqueeze(1), inputs_val[:, 1:])
             
-            mse_loss = loss_fn(outputs[mask], targets[mask])
+            mse_loss_val = loss_fn(outputs_val, targets_val)
 
-            lv = mse_loss.item()
-            total_loss_val += lv * targets.shape[0]
-            
-            num_val_examples += targets.shape[0]
-    val_time = time() - val_start
+            lv_val = mse_loss_val.item()
+            total_loss_val += lv_val * targets_val.shape[0]
+            num_val_examples += targets_val.shape[0]
+            # breakpoint()
+    time_val = time() - start_val
+    
+    # assert num_train_examples == args.n_train
+    # assert num_val_examples == args.n_val
 
     # mean loss per example (training and val) and time needed to do pass
-    return (total_loss_train / num_train_examples), (total_loss_val / num_val_examples), training_time, val_time
+    return (total_loss_train / num_train_examples), (total_loss_val / num_val_examples), time_train, time_val
 
 def main(args):
     
@@ -131,9 +153,11 @@ def main(args):
     elif args.soln == 2:
         shutil.copyfile(os.path.join('neurips_functions', 'f2_radial_waves.py'), 'function.py')
     elif args.soln == 3:
-        shutil.copyfile(os.path.join('neurips_functions', 'f3_hopf_vibration.py'), 'function.py')
+        shutil.copyfile(os.path.join('neurips_functions', 'f3_hopf_fibration.py'), 'function.py')
     elif args.soln == 4:
         shutil.copyfile(os.path.join('neurips_functions', 'f4_random_sol.py'), 'function.py')
+    elif args.soln == 5:
+        shutil.copyfile(os.path.join('neurips_functions', 'f5_new_radial_waves.py'), 'function.py')
     
     from function import u, c
     
@@ -233,7 +257,7 @@ def main(args):
             val_inputs, val_targets, val_mask
         ),
         batch_size=batch_size,
-        shuffle=True
+        shuffle=False
     )
 
     # easy way to get model from string name
@@ -246,8 +270,9 @@ def main(args):
         input_dim=args.input_dim,
         output_dim=args.output_dim,
         activation=args.activation,
-        # dropout_val=args.do,
-        init=args.init
+        do=args.do,
+        init=args.init,
+        gain=args.gain
     ).to(device)
 
     # bilevel optimization, more-or-less deprecated
@@ -264,14 +289,26 @@ def main(args):
             lr=args.outer_lr,
             weight_decay=args.outer_wd
         )
-        optimizers = (inner_optimizer, outer_optimizer)
+        optimizers = [inner_optimizer, outer_optimizer]
     # standard optimization
     else:
-        optimizers = (torch.optim.AdamW(
+        optimizers = [torch.optim.AdamW(
             model.parameters(),
             lr=args.lr,
-            weight_decay=args.wd
-        ),)
+            weight_decay=args.wd,
+            betas=(args.beta1, args.beta2)
+        )]
+    
+    if args.scheduler.lower() == 'cosine':
+        schedulers = [
+            CosineAnnealingLR(
+                optimizer,
+                T_max=args.max_epochs * args.T_max_factor, # total number of epochs
+                eta_min=args.eta_min
+            ) for optimizer in optimizers
+        ]
+    else:
+        schedulers = []
 
     # symlog loss, found to be helpful in some papers with disparate targets
     if args.symlog:
@@ -321,8 +358,7 @@ def main(args):
     
     # loss logging
     best_loss = torch.inf
-    k = args.k
-    last_k_errs = []
+    last_k_train_losses = []
     
     # console message
     print(f'(Exp. {this_experiment}) Training {model_class.__name__} on {device}...')
@@ -342,6 +378,7 @@ def main(args):
                 val_loader=val_loader,
                 model=model,
                 optimizers=optimizers,
+                schedulers=schedulers,
                 loss_fn=loss_fn,
                 epoch=epoch,
                 epochs=args.max_epochs,
@@ -351,9 +388,8 @@ def main(args):
                 preload_data=args.preload_data
             )
             
-            # TODO: CHECK VALIDITY OF THIS
             if mean_val_f_sq == 0:
-                mean_val_f_sq += 1e-10
+                mean_val_f_sq = 1e-12
             rel_l2_error = sqrt(mse_val) / sqrt(mean_val_f_sq) # relative L2 error
             
             fp.write( # log immediately, don't wait, it doesn't count towards training time
@@ -369,38 +405,19 @@ def main(args):
                 )
                 
                 best_loss = mse_val
-
-                if args.early_stopping: # early stopping logic
-                    if epoch > 100 and rel_l2_error < args.tol: # must improve to break
-                        print(f'Stopping early at epoch {epoch+1} (mse {rel_l2_error} < args.tol {args.tol}).')
-                        break
-                    
-                    if epoch > 100 and len(last_k_errs) == k: # at least 100 epochs
-                        last_k_errs_tensor = torch.tensor(last_k_errs)
-                        if torch.allclose(
-                            last_k_errs_tensor,
-                            last_k_errs_tensor.mean(),
-                            atol=args.atol
-                        ):
-                            print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
-                            break
-                        else:
-                            flags = []
-                            for i in range(1, len(last_k_errs)):
-                                if last_k_errs[i] > last_k_errs[i-1]:
-                                    flags.append(True)
-                                else:
-                                    flags.append(False)
-                                    break
-                            if all(flags):
-                                print(f'Stopping early at epoch {epoch+1} (last k errors: {last_k_errs}).')
-                                break
             
-            # running losses for early stopping
-            if len(last_k_errs) == k:
-                del last_k_errs[0]
-            
-            last_k_errs.append(rel_l2_error)
+            if args.restarts:
+                last_k_train_losses.append(mse_train)
+                if len(last_k_train_losses) > args.restart_patience:
+                    del last_k_train_losses[0]
+                    if len(last_k_train_losses) == args.restart_patience:
+                        window = last_k_train_losses
+                        rel_range = (max(window) - min(window)) / (sum(window) / len(window))
+                        if rel_range < args.restart_tolerance / 100:
+                            for optimizer in optimizers:
+                                reset_optimizer(optimizer)
+                            print(f'Reset at epoch {epoch}.')
+                            last_k_train_losses = []
 
     # console message
     print('Done.')
@@ -417,7 +434,6 @@ def validate(args):
     assert args.lr > 0
     assert args.wd >= 0
     assert args.log_freq > 0
-    assert args.tol > 0
     for i in range(len(args.val_mins)):
         assert args.train_mins[i] <= args.train_maxes[i]
         assert args.val_mins[i] <= args.val_maxes[i]
@@ -458,22 +474,22 @@ if __name__ == "__main__":
         help='Log with tqdm.'
     )
     parser.add_argument(
-        '--tol',
-        type=float,
-        default=1e-4,
-        help='Stop training if rel L2 error is less than this tolerance.'
-    )
-    parser.add_argument(
-        '--atol',
-        type=float,
-        default=1e-4,
-        help='Stop training if rel L2 error is not changing by more than this tolerance.'
-    )
-    parser.add_argument(
-        '--k',
+        '--restart_patience',
         type=int,
         default=10,
-        help='Patience for atol.'
+        help='Patience for restarts.'
+    )
+    parser.add_argument(
+        '--restart_tolerance',
+        type=float,
+        default=1e-1,
+        help='Last {patience} losses must be within _ percent of each other to restart.'
+    )
+    parser.add_argument(
+        '--restarts',
+        action='store_true',
+        default=False,
+        help='Whether to restart the optimizer periodically.'
     )
     parser.add_argument(
         '--model_class',
@@ -508,7 +524,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--init',
         type=str,
-        default='kaiming',
+        default='xavier normal',
         help='Normal or Kaiming initialization.'
     )
     parser.add_argument(
@@ -565,12 +581,12 @@ if __name__ == "__main__":
         default=42,
         help='Random seed.'
     )
-    # parser.add_argument(
-    #     '--do',
-    #     type=float,
-    #     default=0.0,
-    #     help='Dropout probability.'
-    # )
+    parser.add_argument(
+        '--do',
+        type=float,
+        default=0.0,
+        help='Dropout probability.'
+    )
     
     # ABOVE GENERALLY FIXED
     
@@ -589,7 +605,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=1_000,
+        default=4_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -610,6 +626,24 @@ if __name__ == "__main__":
         default=5e-5,
         help='Weight decay.'
     )
+    parser.add_argument(
+        '--beta1',
+        type=float,
+        default=0.9,
+        help="Beta 1 for AdamW."
+    )
+    parser.add_argument(
+        '--beta2',
+        type=float,
+        default=0.95,
+        help="Beta 2 for AdamW."
+    )
+    parser.add_argument(
+        '--max_norm',
+        type=float,
+        default=float('inf'),
+        help="Gradient clipping."
+    )
     
     # ABOVE OF LESS CONCERN, ABLATIONS ETC.
     
@@ -622,13 +656,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--preload_data',
         action='store_true',
-        default=False,
+        default=True,
         help='Move all train and val tensors to device before training.'
     )
     parser.add_argument(
         '--add_bc',
         action='store_true',
-        default=False,
+        default=True,
         help='Whether to use boundary conditions.'
     )
     parser.add_argument(
@@ -642,7 +676,7 @@ if __name__ == "__main__":
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[0.0] + [1.0] * input_dim,
+        default=[1.0] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
@@ -656,14 +690,38 @@ if __name__ == "__main__":
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[0.2] + [0.8] * input_dim,
+        default=[1.0] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--soln',
         type=int,
-        default=0,
+        default=4,
         help='Which solution to work with. (1-4). 0 means use whatever is in function.py as is.'
+    )
+    parser.add_argument(
+        '--scheduler',
+        type=str,
+        default='cosine',
+        help="'cosine' else no scheduler."
+    )
+    parser.add_argument(
+        '--eta_min',
+        type=float,
+        default=5e-5,
+        help="eta_min if using a scheduler."
+    )
+    parser.add_argument(
+        '--T_max_factor',
+        type=float,
+        default=1.0,
+        help="Multiplied by max_epochs to get T_max for cosine annealing."
+    )
+    parser.add_argument(
+        '--gain',
+        type=float,
+        default=5/3,
+        help="Gain for Xavier."
     )
 
     args = parser.parse_args()

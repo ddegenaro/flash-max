@@ -15,9 +15,10 @@ class MaxwellSimple(PCNN):
         input_dim: int = 1,
         output_dim: int = -1,
         activation: str = 'relu',
-        # dropout_val: float = 0.1,
+        do: float = 0.1,
         init = 'kaiming',
-        keys = ('1+', '1-', '2+', '2-')
+        keys = ('1+', '1-', '2+', '2-'),
+        gain = None
     ):
         
         super().__init__(
@@ -26,8 +27,9 @@ class MaxwellSimple(PCNN):
             input_dim=input_dim,
             output_dim=output_dim,
             activation=activation,
-            # dropout_val=dropout_val
-            init=init
+            do=do,
+            init=init,
+            gain=gain
         )
         
         self.Z_x = nn.ParameterDict() # Z_1, Z_2, Z_3
@@ -36,12 +38,25 @@ class MaxwellSimple(PCNN):
         
         self.keys = keys
         
+        # breakpoint()
+        
         for key in self.keys:
             self.Z_x[key] = nn.Parameter(torch.zeros(3, self.width))
             self.W[key] = nn.Parameter(torch.zeros(1, self.width))
             self.b[key] = nn.Parameter(torch.zeros(1, self.width))
-            nn.init.kaiming_normal_(self.Z_x[key].data)
-            nn.init.kaiming_normal_(self.W[key].data.T)
+            
+            if self.init == 'kaiming normal':
+                nn.init.kaiming_normal_(self.Z_x[key].data)
+                nn.init.kaiming_normal_(self.W[key].data.T)
+            elif self.init == 'xavier normal':
+                nn.init.xavier_normal_(self.Z_x[key].data, gain=self.gain)
+                nn.init.xavier_normal_(self.W[key].data.T, gain=self.gain)
+            elif self.init == 'kaiming uniform':
+                nn.init.kaiming_uniform_(self.Z_x[key].data)
+                nn.init.kaiming_uniform_(self.W[key].data.T)
+            elif self.init == 'xavier uniform':
+                nn.init.xavier_uniform_(self.Z_x[key].data, gain=self.gain)
+                nn.init.xavier_uniform_(self.W[key].data.T, gain=self.gain)
         
     def forward(self, t, x):
         
@@ -62,7 +77,7 @@ class MaxwellSimple(PCNN):
                     self.Z_x[key] # Z_1, Z_2, Z_3
                 ))
         
-            A = self.activation(X @ Z + self.b[key]) * self.W[key]
+            A = self.dropout(self.activation(X @ Z + self.b[key])) * self.W[key]
 
             if '1' in key:
                 P = torch.vstack((
