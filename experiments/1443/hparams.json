@@ -1,0 +1,97 @@
+{
+    "input_dim": 3,
+    "output_dim": 6,
+    "max_epochs": 1000,
+    "log_freq": 100,
+    "verbose": false,
+    "restart_patience": 10,
+    "restart_tolerance": 0.1,
+    "restarts": false,
+    "model_class": "MaxwellSimple",
+    "norm_inputs": false,
+    "restrict_time": true,
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "init": "xavier normal",
+    "noise_scale": 0,
+    "inner_lr": 0.01,
+    "inner_wd": 5e-06,
+    "outer_lr": 0.01,
+    "outer_wd": 5e-05,
+    "bilevel": false,
+    "symlog": false,
+    "early_stopping": false,
+    "seed": 1,
+    "do": 0.0,
+    "n_train": 20000,
+    "batch_size": 1000,
+    "width": 2000,
+    "activation": "tanh",
+    "lr": 0.07,
+    "wd": 5e-05,
+    "beta1": 0.9,
+    "beta2": 0.9,
+    "max_norm": Infinity,
+    "use_cpu": false,
+    "preload_data": true,
+    "add_bc": true,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "val_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "soln": 2,
+    "scheduler": "cosine",
+    "eta_min": 0.0,
+    "T_max_factor": 1.0,
+    "gain": 1.6666666666666667,
+    "c": 1.0,
+    "param_count": 40000,
+    "mu_inputs": [
+        0.428728312253952,
+        0.5008729100227356,
+        0.5011740922927856,
+        0.49927425384521484
+    ],
+    "sigma_inputs": [
+        0.31938472390174866,
+        0.36171281337738037,
+        0.3617623746395111,
+        0.3607964813709259
+    ],
+    "mu_targets": [
+        -0.07239095121622086,
+        0.06819455325603485,
+        0.09174808859825134,
+        0.05921975150704384,
+        -0.0733669176697731,
+        0.09174808859825134
+    ],
+    "sigma_targets": [
+        0.6946926116943359,
+        0.7593053579330444,
+        5.872450351715088,
+        0.5589753985404968,
+        0.8646908402442932,
+        5.87244987487793
+    ]
+}

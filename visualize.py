@@ -27,10 +27,15 @@ def main(args):
     
     print(f'Visualizing experiment {experiment_num}...')
     path = os.path.join('experiments', experiment_num)
+
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("f", os.path.join(path, "f.py"))
+    f_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(f_module)
+    u = f_module.u
     
-    sys.path.append(path)
-    
-    from f import u
+    # breakpoint()
 
     hparams = json.load(
         open(os.path.join(path, 'hparams.json'), 'r', encoding='utf-8')

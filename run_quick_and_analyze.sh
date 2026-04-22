@@ -8,9 +8,9 @@ PYTHON_PATH="$(which python)"
 
 # SOLUTIONS 1-4 EACH 2 TIMES
 
-for s in 2 1; do
+for s in 1 2; do
 
-    for i in 1 2 3 4; do
+    for i in 2 3 4 1; do
 
         python train.py \
             --train_mins  0.0 0.0 0.0 0.0 \

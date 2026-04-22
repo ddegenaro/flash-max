@@ -6,6 +6,7 @@ from time import time
 from inspect import signature
 import random
 from math import sqrt
+import sys
 
 import numpy as np
 from tqdm import tqdm
@@ -159,7 +160,16 @@ def main(args):
     elif args.soln == 5:
         shutil.copyfile(os.path.join('neurips_functions', 'f5_new_radial_waves.py'), 'function.py')
     
+    
+
+    # overwrite function.py with the chosen solution first (existing code) ...
+
+    if 'function' in sys.modules:
+        del sys.modules['function']
+
     from function import u, c
+    
+    # breakpoint()
     
     # whether to sample random points or use a grid
     if args.data_from_lattice:
@@ -593,7 +603,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=1_000,
+        default=100_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
@@ -605,7 +615,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=4_000,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -635,7 +645,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--beta2',
         type=float,
-        default=0.95,
+        default=0.999,
         help="Beta 2 for AdamW."
     )
     parser.add_argument(
@@ -702,13 +712,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--scheduler',
         type=str,
-        default='cosine',
+        default='',
         help="'cosine' else no scheduler."
     )
     parser.add_argument(
         '--eta_min',
         type=float,
-        default=5e-5,
+        default=0.0,
         help="eta_min if using a scheduler."
     )
     parser.add_argument(
@@ -720,7 +730,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--gain',
         type=float,
-        default=5/3,
+        default=1.0,
         help="Gain for Xavier."
     )
 

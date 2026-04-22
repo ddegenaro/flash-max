@@ -20,28 +20,45 @@ parser.add_argument(
     help='Max experiment number to analyze.'
 )
 parser.add_argument(
-    '--n_train', '-t',
-    type=int,
-    default=None,
-    help='Value of n_train to restrict to.'
-)
-parser.add_argument(
-    '--noise_scale', '-n',
-    type=float,
-    default=None,
-    help='Value of noise_scale to restrict to.'
-)
-parser.add_argument(
-    '--soln',
-    type=int,
-    default=None,
-    help='Solution number to restrict to.'
-)
-parser.add_argument(
     '--just', '-j',
     type=int,
     default=None,
     help='Just this experiment.'
+)
+
+# HPARAM SEARCH
+
+parser.add_argument(
+    '--n_train',
+    type=int,
+    default=None
+)
+parser.add_argument(
+    '--noise_scale',
+    type=float,
+    default=None
+)
+parser.add_argument(
+    '--soln',
+    type=int,
+    default=None
+)
+parser.add_argument(
+    '--seed',
+    type=int,
+    default=None
+)
+parser.add_argument(
+    '--add_bc',
+    action='store_true',
+    default=True
+)
+
+# SUCCESS SEARCH
+parser.add_argument(
+    '--min_err',
+    type=float,
+    default=None
 )
 
 args = parser.parse_args()
@@ -67,13 +84,31 @@ for i in range(start, end+1):
 
     data = json.load(open(os.path.join(exp_dir, 'hparams.json')))
     
+    process_run = True
+    
+    for hparam, value in vars(args).items():
+        if hparam not in data or value is None:
+            continue
+        else:
+            if data[hparam] != value:
+                process_run = False
+                break
+    
+    if not process_run:
+        continue
+    
     df = pd.read_csv(
         os.path.join('experiments', f'{i}', 'log.tsv'),
         sep = '\t'
     )
     
-    if len(df) < 200:
+    if len(df) < 10:
         continue
+    
+    if args.min_err is not None:
+        min_err = df['rel_l2_error'].min()
+        if min_err > args.min_err:
+            continue
     
     print(f'Processing experiment {i}...')
     print(f'soln:         {data['soln']}')
@@ -91,8 +126,6 @@ for i in range(start, end+1):
     # print(f'training:      {data['train_mins']} -> {data['train_maxes']}')
     # print(f'validation:    {data['val_mins']} -> {data['val_maxes']}')
     # print(f'add_bc:        {data['add_bc']}')
-
-    
 
     df['rounded_error'] = df['rel_l2_error'].round(3)
 

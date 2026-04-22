@@ -1,0 +1,312 @@
+Processing experiment 1002...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      1000
+width:        10000
+lr:           0.1
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      5e-05
+Training time to first error <1%: 32.7
+Training time to min error of 0.8%: 40.9
+--------------------------------------------------
+Processing experiment 1024...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        2000
+lr:           0.5
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      5e-05
+Didn't reach error <1%.
+Training time to min error of 4.2%: 7.2
+--------------------------------------------------
+Processing experiment 1032...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        2000
+lr:           0.5
+wd:           0.0005
+T_max_factor: 1.0
+eta_min:      5e-05
+Didn't reach error <1%.
+Training time to min error of 4.7%: 6.9
+--------------------------------------------------
+Processing experiment 1048...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.2
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      5e-05
+Didn't reach error <1%.
+Training time to min error of 2.4%: 7.6
+--------------------------------------------------
+Processing experiment 1056...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.5
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      5e-05
+Didn't reach error <1%.
+Training time to min error of 1.9%: 8.2
+--------------------------------------------------
+Processing experiment 1064...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.1
+wd:           0.0001
+T_max_factor: 1.0
+eta_min:      5e-05
+Didn't reach error <1%.
+Training time to min error of 3.6%: 7.8
+--------------------------------------------------
+Processing experiment 1072...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.1
+wd:           1e-05
+T_max_factor: 1.0
+eta_min:      5e-05
+Didn't reach error <1%.
+Training time to min error of 3.6%: 7.8
+--------------------------------------------------
+Processing experiment 1088...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.1
+wd:           1e-05
+T_max_factor: 1.0
+eta_min:      1e-05
+Didn't reach error <1%.
+Training time to min error of 3.6%: 8.3
+--------------------------------------------------
+Processing experiment 1147...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.5
+wd:           0.0005
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 2.0%: 7.1
+--------------------------------------------------
+Processing experiment 1164...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Training time to first error <1%: 41.0
+Training time to min error of 0.8%: 74.6
+--------------------------------------------------
+Processing experiment 1166...
+soln:         2
+seed:         2
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 3.2%: 186.0
+--------------------------------------------------
+Processing experiment 1168...
+soln:         2
+seed:         3
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 3.8%: 181.4
+--------------------------------------------------
+Processing experiment 1170...
+soln:         2
+seed:         4
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 3.4%: 207.6
+--------------------------------------------------
+Processing experiment 1172...
+soln:         2
+seed:         5
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 3.9%: 188.3
+--------------------------------------------------
+Processing experiment 1310...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      10000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.1%: 53.3
+--------------------------------------------------
+Processing experiment 1315...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      10000
+width:        10000
+lr:           0.07
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.2%: 47.1
+--------------------------------------------------
+Processing experiment 1319...
+soln:         2
+seed:         2
+add_bc:       True
+n_train:      10000
+width:        10000
+lr:           0.07
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Training time to first error <1%: 41.7
+Training time to min error of 0.7%: 55.5
+--------------------------------------------------
+Processing experiment 1323...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      10000
+width:        10000
+lr:           0.07
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Training time to first error <1%: 55.8
+Training time to min error of 0.9%: 55.8
+--------------------------------------------------
+Processing experiment 1327...
+soln:         2
+seed:         2
+add_bc:       True
+n_train:      10000
+width:        10000
+lr:           0.07
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Training time to first error <1%: 41.6
+Training time to min error of 0.7%: 55.3
+--------------------------------------------------
+Processing experiment 1331...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      10000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.1%: 56.3
+--------------------------------------------------
+Processing experiment 1363...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      7000
+width:        2000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 2.4%: 39.1
+--------------------------------------------------
+Processing experiment 1367...
+soln:         2
+seed:         2
+add_bc:       True
+n_train:      7000
+width:        2000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 2.6%: 40.7
+--------------------------------------------------
+Processing experiment 1371...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      10000
+width:        1000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 2.0%: 53.4
+--------------------------------------------------
+Processing experiment 1376...
+soln:         2
+seed:         2
+add_bc:       True
+n_train:      10000
+width:        1000
+lr:           0.1
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 3.7%: 18.9
+--------------------------------------------------
