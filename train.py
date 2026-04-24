@@ -491,7 +491,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--max_time',
         type=int,
-        default=30,
+        default=10,
         help='Maximum minutes of training time. Overrides max_epochs.'
     )
     parser.add_argument(
@@ -605,7 +605,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--early_stopping',
         action='store_true',
-        default=False,
+        default=True,
         help='Whether to use early stopping.'
     )
     parser.add_argument(
