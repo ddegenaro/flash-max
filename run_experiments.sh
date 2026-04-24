@@ -8,7 +8,7 @@ PYTHON_PATH="$(which python)"
 
 # SOLUTIONS 1-4 EACH w/ and w/o BC, 5 seeds
 
-for i in 1 2 3 4; do
+for i in 4 3 2 1; do
 
     for s in 1 2 3 4 5; do
 
