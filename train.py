@@ -443,7 +443,7 @@ def main(args):
             if total_time > args.max_time * 60:
                 break
             epoch += 1
-            if args.max_time is not None and epoch == args.max_epochs:
+            if args.max_time is None and epoch == args.max_epochs:
                 break
 
     # console message
