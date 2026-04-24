@@ -310,3 +310,81 @@ eta_min:      0.0
 Didn't reach error <1%.
 Training time to min error of 3.7%: 18.9
 --------------------------------------------------
+Processing experiment 1467...
+soln:         2
+seed:         1
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.9%: 207.3
+--------------------------------------------------
+Processing experiment 1469...
+soln:         2
+seed:         2
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.5%: 196.7
+--------------------------------------------------
+Processing experiment 1471...
+soln:         2
+seed:         3
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.9%: 225.8
+--------------------------------------------------
+Processing experiment 1472...
+soln:         2
+seed:         3
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 4.1%: 218.3
+--------------------------------------------------
+Processing experiment 1473...
+soln:         2
+seed:         4
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.5%: 197.8
+--------------------------------------------------
+Processing experiment 1475...
+soln:         2
+seed:         5
+add_bc:       True
+n_train:      2000
+width:        10000
+lr:           0.05
+wd:           5e-05
+T_max_factor: 1.0
+eta_min:      0.0
+Didn't reach error <1%.
+Training time to min error of 1.8%: 220.8
+--------------------------------------------------

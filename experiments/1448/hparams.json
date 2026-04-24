@@ -1,0 +1,98 @@
+{
+    "input_dim": 3,
+    "output_dim": 6,
+    "max_epochs": 1000,
+    "log_freq": 100,
+    "verbose": false,
+    "restart_patience": 10,
+    "restart_tolerance": 0.1,
+    "restarts": false,
+    "model_class": "MaxwellSimple",
+    "norm_inputs": false,
+    "restrict_time": true,
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "init": "xavier normal",
+    "noise_scale": 0,
+    "inner_lr": 0.01,
+    "inner_wd": 5e-06,
+    "outer_lr": 0.01,
+    "outer_wd": 5e-05,
+    "bilevel": false,
+    "symlog": false,
+    "early_stopping": false,
+    "seed": 1,
+    "do": 0.0,
+    "n_train": 100000,
+    "batch_size": 1000,
+    "width": 1000,
+    "activation": "tanh",
+    "lr": 0.05,
+    "wd": 5e-05,
+    "beta1": 0.9,
+    "beta2": 0.999,
+    "max_norm": Infinity,
+    "use_cpu": false,
+    "preload_data": true,
+    "add_bc": true,
+    "do_masking": false,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "val_maxes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "soln": 2,
+    "scheduler": "",
+    "eta_min": 0.0,
+    "T_max_factor": 1.0,
+    "gain": 1.0,
+    "c": 1.0,
+    "param_count": 20000,
+    "mu_inputs": [
+        0.4286946952342987,
+        0.5007531046867371,
+        0.49982643127441406,
+        0.49905306100845337
+    ],
+    "sigma_inputs": [
+        0.31887856125831604,
+        0.3617249131202698,
+        0.3617270588874817,
+        0.36138084530830383
+    ],
+    "mu_targets": [
+        -0.0763319730758667,
+        0.06408021599054337,
+        0.06160793825984001,
+        0.0627276599407196,
+        -0.07699631154537201,
+        0.061607930809259415
+    ],
+    "sigma_targets": [
+        0.7062122821807861,
+        0.5531988143920898,
+        1.6115084886550903,
+        0.5727400779724121,
+        0.6905093193054199,
+        1.6115081310272217
+    ]
+}

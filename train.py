@@ -187,7 +187,8 @@ def main(args):
         f=u,
         noise_scale=args.noise_scale,
         restrict_time=args.restrict_time,
-        add_bc=args.add_bc
+        add_bc=args.add_bc,
+        do_masking=args.do_masking
     )
     
     # ensure input-target pairs are matched up on dim 0
@@ -382,7 +383,13 @@ def main(args):
         ) as fp:
         
         # epoch loop
-        for epoch in range(args.max_epochs):
+        total_time = 0.
+        epoch = 0
+        if args.max_time is not None:
+            epochs = float('inf')
+        else:
+            epochs = args.max_epochs
+        while True:
             mse_train, mse_val, training_time, val_time = train_epoch(
                 train_loader=train_loader,
                 val_loader=val_loader,
@@ -391,16 +398,20 @@ def main(args):
                 schedulers=schedulers,
                 loss_fn=loss_fn,
                 epoch=epoch,
-                epochs=args.max_epochs,
+                epochs=epochs,
                 log_freq=args.log_freq,
                 verbose=args.verbose,
                 device=device,
                 preload_data=args.preload_data
             )
+            total_time += training_time
             
             if mean_val_f_sq == 0:
                 mean_val_f_sq = 1e-12
             rel_l2_error = sqrt(mse_val) / sqrt(mean_val_f_sq) # relative L2 error
+            if args.early_stopping:
+                if rel_l2_error < 0.01:
+                    return
             
             fp.write( # log immediately, don't wait, it doesn't count towards training time
                 f'{epoch+1}\t{mse_train}\t{mse_val}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
@@ -428,6 +439,12 @@ def main(args):
                                 reset_optimizer(optimizer)
                             print(f'Reset at epoch {epoch}.')
                             last_k_train_losses = []
+                            
+            if total_time > args.max_time * 60:
+                break
+            epoch += 1
+            if args.max_time is not None and epoch == args.max_epochs:
+                break
 
     # console message
     print('Done.')
@@ -470,6 +487,12 @@ if __name__ == "__main__":
         type=int,
         default=10_000,
         help='Maximum number of times to show the data to the model.'
+    )
+    parser.add_argument(
+        '--max_time',
+        type=int,
+        default=30,
+        help='Maximum minutes of training time. Overrides max_epochs.'
     )
     parser.add_argument(
         '--log_freq',
@@ -603,19 +626,19 @@ if __name__ == "__main__":
     parser.add_argument(
         '--n_train',
         type=int,
-        default=100_000,
+        default=2_000,
         help='Number of samples to generate for training. Default 1,000.'
     )
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=1_000,
+        default=2_000,
         help='Batch size for training and validation. Default 1_000.'
     )
     parser.add_argument(
         '--width',
         type=int,
-        default=1_000,
+        default=10_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -645,7 +668,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--beta2',
         type=float,
-        default=0.999,
+        default=0.95,
         help="Beta 2 for AdamW."
     )
     parser.add_argument(
@@ -660,13 +683,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--use_cpu',
         action='store_true',
-        default=False,
+        default=True,
         help='Whether to train on CPU.'
     )
     parser.add_argument(
         '--preload_data',
         action='store_true',
-        default=True,
+        default=False,
         help='Move all train and val tensors to device before training.'
     )
     parser.add_argument(
@@ -674,6 +697,12 @@ if __name__ == "__main__":
         action='store_true',
         default=True,
         help='Whether to use boundary conditions.'
+    )
+    parser.add_argument(
+        '--do_masking',
+        action='store_true',
+        default=False,
+        help='Whether to mask in boundary conditions.'
     )
     parser.add_argument(
         '--train_mins',
@@ -712,7 +741,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--scheduler',
         type=str,
-        default='',
+        default='cosine',
         help="'cosine' else no scheduler."
     )
     parser.add_argument(
@@ -730,7 +759,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--gain',
         type=float,
-        default=1.0,
+        default=5/3,
         help="Gain for Xavier."
     )
 

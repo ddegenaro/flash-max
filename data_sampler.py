@@ -10,7 +10,8 @@ def random_data(
     f: Callable = None,
     noise_scale: float = 0,
     restrict_time: bool = False,
-    add_bc: bool = False
+    add_bc: bool = False,
+    do_masking: bool = True
 ) -> tuple[torch.Tensor, Union[torch.Tensor, None], Union[torch.Tensor, None]]:
     
     """
@@ -115,7 +116,7 @@ def random_data(
         
         mask = torch.ones_like(targets)
         
-        if add_bc:
+        if add_bc and do_masking:
             
             # second-third pieces, E_x is ignored
             mask[1*points_per_piece:3*points_per_piece, 0] = 0
