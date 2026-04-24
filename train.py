@@ -683,7 +683,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--use_cpu',
         action='store_true',
-        default=True,
+        default=False,
         help='Whether to train on CPU.'
     )
     parser.add_argument(
