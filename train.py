@@ -695,7 +695,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--add_bc',
         action='store_true',
-        default=True,
+        default=False,
         help='Whether to use boundary conditions.'
     )
     parser.add_argument(
