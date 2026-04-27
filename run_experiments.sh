@@ -20,6 +20,7 @@ for i in 4 3 2 1; do
             --seed ${s} \
             --soln ${i} \
             --add_bc \
+	    --do_masking \
 
         # python train.py \
         #     --train_mins  0.0 0.0 0.0 0.0 \
@@ -31,13 +32,13 @@ for i in 4 3 2 1; do
         #     --add_bc \
         #     --use_cpu \
 
-        python train.py \
-            --train_mins  0.0 0.0 0.0 0.0 \
-            --train_maxes 0.0 1.0 1.0 1.0 \
-            --val_mins    0.0 0.2 0.2 0.2 \
-            --val_maxes   0.1 0.8 0.8 0.8 \
-            --seed ${s} \
-            --soln ${i} \
+        # python train.py \
+        #     --train_mins  0.0 0.0 0.0 0.0 \
+        #     --train_maxes 0.0 1.0 1.0 1.0 \
+        #     --val_mins    0.0 0.2 0.2 0.2 \
+        #     --val_maxes   0.1 0.8 0.8 0.8 \
+        #     --seed ${s} \
+        #     --soln ${i} \
 
         # python train.py \
         #     --train_mins  0.0 0.0 0.0 0.0 \
