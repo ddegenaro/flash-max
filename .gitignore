@@ -4,6 +4,7 @@ experiments/*/model.pth
 experiments/*/*.tsv
 experiments/*/*.gif
 experiments/*/*.png
+experiments/*/*.pdf
 xin_code/
 markus_code/
 bogdan_code/

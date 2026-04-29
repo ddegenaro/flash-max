@@ -70,7 +70,7 @@ def main(args):
     sr = args.spatial_resolution
     
     if args.length is None:
-        length = (maxes[1] - mins[1]) / sr * 3
+        length = (maxes[1] - mins[1]) / sr / 1.5
         
     # breakpoint()
     
@@ -256,7 +256,7 @@ def main(args):
                         Us[key]['E'][j, :, 0].reshape(X_shape),
                         Us[key]['E'][j, :, 1].reshape(X_shape),
                         Us[key]['E'][j, :, 2].reshape(X_shape),
-                        length=length, normalize=False, arrow_length_ratio=args.alr,
+                        length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=E_colors
                     )
                     writer.grab_frame()
@@ -274,7 +274,7 @@ def main(args):
                         Us[key]['B'][j, :, 0].reshape(X_shape),
                         Us[key]['B'][j, : , 1].reshape(X_shape),
                         Us[key]['B'][j, :, 2].reshape(X_shape),
-                        length=length, normalize=False, arrow_length_ratio=args.alr,
+                        length=length, normalize=True, arrow_length_ratio=args.alr,
                         colors=B_colors
                     )
                     writer.grab_frame()
@@ -304,87 +304,6 @@ def main(args):
                     dpi=args.dpi
                 )
         
-        # ── Snapshot PDFs at the midpoint frame ────────────────────────────────
-        if args.snapshot and double_quiver and not args.trueonly:
-            snap_idx = frame_count // 2
-            X_shape = X_np.shape
-
-            def _save_quiver_pdf(field, label, norm, filepath):
-                """Render a single quiver frame and save as PDF."""
-                magnitude = torch.sqrt((field ** 2).sum(-1))          # (spatial_size,)
-                colors = plt.cm.RdBu(norm(magnitude.numpy()))
-                fig_s, ax_s = plt.subplots(subplot_kw={"projection": "3d"})
-                ax_s.quiver(
-                    X_np, Y_np, Z_np,
-                    field[:, 0].reshape(X_shape),
-                    field[:, 1].reshape(X_shape),
-                    field[:, 2].reshape(X_shape),
-                    length=length, normalize=False, arrow_length_ratio=args.alr,
-                    colors=colors
-                )
-                ax_s.set_title(label)
-                fig_s.savefig(filepath, format='pdf', dpi=args.dpi, bbox_inches='tight')
-                plt.close(fig_s)
-
-            # Compute diff fields at the snapshot frame.
-            E_diff = Us['pred']['E'][snap_idx] - Us['true']['E'][snap_idx]
-            B_diff = Us['pred']['B'][snap_idx] - Us['true']['B'][snap_idx]
-
-            # Build unified norms so that color/length encoding is consistent
-            # across the true, pred, and diff figures for each field.
-            # The norm spans [0, global_max] where global_max is the largest
-            # magnitude seen in any of the three variants at the snapshot frame.
-            def _unified_norm(*fields):
-                """Return a Normalize whose vmax is the max magnitude across all fields."""
-                global_max = max(
-                    torch.sqrt((f ** 2).sum(-1)).max().item()
-                    for f in fields
-                )
-                if global_max == 0:
-                    global_max = 1.0                                    # avoid degenerate norm
-                return plt.Normalize(vmin=0, vmax=global_max)
-
-            # Norm is set by the true/pred fields only — the diff is then plotted
-            # on the same scale, so small errors naturally appear faint and short.
-            snap_E_norm = _unified_norm(
-                Us['true']['E'][snap_idx], Us['pred']['E'][snap_idx]
-            )
-            snap_B_norm = _unified_norm(
-                Us['true']['B'][snap_idx], Us['pred']['B'][snap_idx]
-            )
-
-            print(f'Saving snapshot PDFs at frame {snap_idx} of {frame_count}...')
-
-            # E_true
-            _save_quiver_pdf(
-                Us['true']['E'][snap_idx], 'E (true)', snap_E_norm,
-                os.path.join(path, 'snapshot_true_E.pdf')
-            )
-            # B_true
-            _save_quiver_pdf(
-                Us['true']['B'][snap_idx], 'B (true)', snap_B_norm,
-                os.path.join(path, 'snapshot_true_B.pdf')
-            )
-            # E_pred
-            _save_quiver_pdf(
-                Us['pred']['E'][snap_idx], 'E (pred)', snap_E_norm,
-                os.path.join(path, 'snapshot_E.pdf')
-            )
-            # B_pred
-            _save_quiver_pdf(
-                Us['pred']['B'][snap_idx], 'B (pred)', snap_B_norm,
-                os.path.join(path, 'snapshot_B.pdf')
-            )
-            # E_diff  (pred - true)
-            _save_quiver_pdf(E_diff, 'E (pred − true)', snap_E_norm,
-                             os.path.join(path, 'snapshot_diff_E.pdf'))
-            # B_diff  (pred - true)
-            _save_quiver_pdf(B_diff, 'B (pred − true)', snap_B_norm,
-                             os.path.join(path, 'snapshot_diff_B.pdf'))
-
-            print('Snapshot PDFs saved.')
-        # ───────────────────────────────────────────────────────────────────────
-
         if double_quiver:
             plt.figure(1)
             plt.plot(
@@ -524,7 +443,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--alr',
         type=float,
-        default=0.3,
+        default=0.5,
         help='Quiver plot arrow length ratio.'
     )
     parser.add_argument(
@@ -544,17 +463,6 @@ if __name__ == "__main__":
         action='store_true',
         default=True,
         help='Make a heatmap of each weight matrix.'
-    )
-    parser.add_argument(
-        '--snapshot',
-        action='store_true',
-        default=True,
-        help=(
-            'Save a PDF snapshot at the midpoint frame. '
-            'Produces 6 PDFs for double-quiver mode: '
-            'snapshot_true_E, snapshot_true_B, snapshot_E, snapshot_B, '
-            'snapshot_diff_E, snapshot_diff_B.'
-        )
     )
 
     args = parser.parse_args()
