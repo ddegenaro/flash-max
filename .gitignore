@@ -6,6 +6,9 @@ experiments/*/*.gif
 experiments/*/*.png
 experiments/*/*.pdf
 xin_code/
+pinn_data/
+gp_data/
+fem_data/
 markus_code/
 bogdan_code/
 .DS_Store

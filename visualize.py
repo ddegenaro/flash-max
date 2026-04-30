@@ -322,8 +322,8 @@ def main(args):
                     length=length, normalize=False, arrow_length_ratio=args.alr,
                     colors=colors
                 )
-                ax_s.set_title(label)
-                fig_s.savefig(filepath, format='pdf', dpi=args.dpi, bbox_inches='tight')
+                # ax_s.set_title(label)
+                fig_s.savefig(filepath, format='pdf', dpi=args.dpi, bbox_inches='tight', transparent=True)
                 plt.close(fig_s)
 
             # Compute diff fields at the snapshot frame.
