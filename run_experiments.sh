@@ -20,7 +20,7 @@ for i in 4 3 2 1; do
             --seed ${s} \
             --soln ${i} \
             --add_bc \
-	    --do_masking \
+	        --do_masking \
 
         # python train.py \
         #     --train_mins  0.0 0.0 0.0 0.0 \
