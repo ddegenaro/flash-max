@@ -1,0 +1,99 @@
+{
+    "input_dim": 3,
+    "output_dim": 6,
+    "max_epochs": 10000,
+    "max_time": 10,
+    "log_freq": 100,
+    "verbose": false,
+    "restart_patience": 10,
+    "restart_tolerance": 0.1,
+    "restarts": false,
+    "model_class": "MaxwellSimple",
+    "norm_inputs": false,
+    "restrict_time": true,
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "init": "xavier normal",
+    "noise_scale": 0,
+    "inner_lr": 0.01,
+    "inner_wd": 5e-06,
+    "outer_lr": 0.01,
+    "outer_wd": 5e-05,
+    "bilevel": false,
+    "symlog": false,
+    "early_stopping": true,
+    "seed": 42,
+    "do": 0.0,
+    "n_train": 100,
+    "batch_size": 1000,
+    "width": 10000,
+    "activation": "tanh",
+    "lr": 0.05,
+    "wd": 5e-05,
+    "beta1": 0.9,
+    "beta2": 0.95,
+    "max_norm": Infinity,
+    "use_cpu": false,
+    "preload_data": false,
+    "add_bc": false,
+    "do_masking": false,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        0.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.2,
+        0.2,
+        0.2
+    ],
+    "val_maxes": [
+        0.1,
+        0.8,
+        0.8,
+        0.8
+    ],
+    "soln": 3,
+    "scheduler": "cosine",
+    "eta_min": 0.0,
+    "T_max_factor": 1.0,
+    "gain": 1.6666666666666667,
+    "c": 1.0,
+    "param_count": 200000,
+    "mu_inputs": [
+        0.0,
+        0.5158298015594482,
+        0.4574636220932007,
+        0.43770164251327515
+    ],
+    "sigma_inputs": [
+        0.0,
+        0.2945525050163269,
+        0.2763649523258209,
+        0.29785898327827454
+    ],
+    "mu_targets": [
+        -0.1896367073059082,
+        0.08083431422710419,
+        -0.20351006090641022,
+        0.19543176889419556,
+        0.17411211133003235,
+        -0.11280137300491333
+    ],
+    "sigma_targets": [
+        0.2006211280822754,
+        0.12105265259742737,
+        0.10869794338941574,
+        0.09184998273849487,
+        0.20856747031211853,
+        0.13224200904369354
+    ]
+}

@@ -1,0 +1,99 @@
+{
+    "input_dim": 3,
+    "output_dim": 6,
+    "max_epochs": 10000,
+    "max_time": 10,
+    "log_freq": 100,
+    "verbose": false,
+    "restart_patience": 10,
+    "restart_tolerance": 0.1,
+    "restarts": false,
+    "model_class": "MaxwellSimple",
+    "norm_inputs": false,
+    "restrict_time": true,
+    "data_from_lattice": false,
+    "n_val": 10000,
+    "init": "xavier normal",
+    "noise_scale": 0,
+    "inner_lr": 0.01,
+    "inner_wd": 5e-06,
+    "outer_lr": 0.01,
+    "outer_wd": 5e-05,
+    "bilevel": false,
+    "symlog": false,
+    "early_stopping": true,
+    "seed": 42,
+    "do": 0.0,
+    "n_train": 10000,
+    "batch_size": 1000,
+    "width": 10000,
+    "activation": "tanh",
+    "lr": 0.05,
+    "wd": 5e-05,
+    "beta1": 0.9,
+    "beta2": 0.95,
+    "max_norm": Infinity,
+    "use_cpu": false,
+    "preload_data": false,
+    "add_bc": false,
+    "do_masking": false,
+    "train_mins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "train_maxes": [
+        0.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "val_mins": [
+        0.0,
+        0.2,
+        0.2,
+        0.2
+    ],
+    "val_maxes": [
+        0.1,
+        0.8,
+        0.8,
+        0.8
+    ],
+    "soln": 4,
+    "scheduler": "cosine",
+    "eta_min": 0.0,
+    "T_max_factor": 1.0,
+    "gain": 1.6666666666666667,
+    "c": 1.0,
+    "param_count": 200000,
+    "mu_inputs": [
+        0.0,
+        0.500727117061615,
+        0.49546200037002563,
+        0.5032815933227539
+    ],
+    "sigma_inputs": [
+        0.0,
+        0.28873831033706665,
+        0.2899641692638397,
+        0.28860658407211304
+    ],
+    "mu_targets": [
+        -0.07917788624763489,
+        0.06733445823192596,
+        0.005533052608370781,
+        0.12369832396507263,
+        -0.03377394750714302,
+        0.005533052142709494
+    ],
+    "sigma_targets": [
+        0.10094758868217468,
+        0.10456984490156174,
+        0.1520155519247055,
+        0.059623632580041885,
+        0.10091134160757065,
+        0.1520155370235443
+    ]
+}

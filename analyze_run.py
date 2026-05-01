@@ -51,7 +51,7 @@ parser.add_argument(
 parser.add_argument(
     '--add_bc',
     action='store_true',
-    default=True
+    default=None
 )
 
 # SUCCESS SEARCH
@@ -92,6 +92,7 @@ for i in range(start, end+1):
         else:
             if data[hparam] != value:
                 process_run = False
+                print(hparam)
                 break
     
     if not process_run:

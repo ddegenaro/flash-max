@@ -6,7 +6,7 @@ cd ~/shallow-nn-wave-eq
 
 PYTHON_PATH="$(which python)"
 
-for i in 1 2 3 4; do
+for i in 1; do
 
     for n in 100 200 500 1000 2000 5000 10000 12000; do
 
