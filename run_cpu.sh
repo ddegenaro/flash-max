@@ -1,6 +1,27 @@
-conda init bash
+#!/bin/bash
+#SBATCH --job-name="cpu_pcnn"
+#SBATCH --output="slurm_logs/%x_%j.o"
+#SBATCH --mincpus=16
+#SBATCH --mem=32gb
+#SBATCH --time=48:00:00
 
+# sets up everything beyond here to behave like your usual terminal
+source ~/.bashrc
+
+# assumes you have /home/<NETID>/my-project-dir where you want to run things
+cd ~/shallow-nn-wave-eq
+
+# assumes you have a conda environment called my_conda_env
 conda activate shallownn
+
+# ensure all requirements are installed [optional]
+python3 -m uv pip install -r requirements.txt
+
+# always good to check
+python3 --version
+
+# should be the path to your conda env's copy of the python interpreter
+which python
 
 cd ~/shallow-nn-wave-eq
 
