@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name="cpu_pcnn"
 #SBATCH --output="slurm_logs/%x_%j.o"
-#SBATCH --mincpus=16
-#SBATCH --mem=32gb
+#SBATCH --mem=16gb
 #SBATCH --time=48:00:00
+#SBATCH --mincpus=2
 
 # sets up everything beyond here to behave like your usual terminal
 source ~/.bashrc
