@@ -15,17 +15,10 @@ cd ~/shallow-nn-wave-eq
 conda activate shallownn
 
 # ensure all requirements are installed [optional]
-python3 -m uv pip install -r requirements.txt
+python -m uv pip install -r requirements.txt
 
 # always good to check
-python3 --version
-
-# should be the path to your conda env's copy of the python interpreter
-which python
-
-cd ~/shallow-nn-wave-eq
-
-PYTHON_PATH="$(which python)"
+python --version
 
 # SOLUTIONS 1-4 EACH w/ and w/o BC, 5 seeds
 
