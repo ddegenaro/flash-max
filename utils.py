@@ -10,7 +10,7 @@ def get_device(use_cpu):
         if torch.backends.mps.is_available():
             return 'mps'
         elif torch.cuda.is_available():
-            return 'cuda:1'
+            return 'cuda:2'
         else:
             return 'cpu'
     
