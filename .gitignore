@@ -5,12 +5,12 @@ experiments/*/*.tsv
 experiments/*/*.gif
 experiments/*/*.png
 experiments/*/*.pdf
-xin_code/
+wave_nbs/
 pinn_data/
 gp_data/
 fem_data/
-markus_code/
-bogdan_code/
+heat_scripts/
+vectorwavenet/
 .DS_Store
 PCNN/
 *.out
