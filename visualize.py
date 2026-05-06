@@ -12,7 +12,7 @@ from matplotlib import cm
 from matplotlib import animation
 
 from wave_equation import Wave, WaveSimplified
-from maxwell_equation import Maxwell, MaxwellSimple
+from maxwell_equation import MaxwellSimple
 from utils import get_device
 from symlog import symexp
 
