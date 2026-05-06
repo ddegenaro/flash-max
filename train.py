@@ -27,7 +27,7 @@ try:
 except:
     pass
 from wave_equation import Wave, WaveSimplified
-from maxwell_equation import Maxwell, MaxwellSimple
+from maxwell_equation import MaxwellSimple
 from utils import get_device, PCNN
 from symlog import symlog
 
