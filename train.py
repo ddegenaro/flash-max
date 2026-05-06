@@ -410,7 +410,7 @@ def main(args):
                 mean_val_f_sq = 1e-12
             rel_l2_error = sqrt(mse_val) / sqrt(mean_val_f_sq) # relative L2 error
             if args.early_stopping:
-                if rel_l2_error < 0.01:
+                if rel_l2_error < 0.01 and total_time > 70.0:
                     return
             
             fp.write( # log immediately, don't wait, it doesn't count towards training time
