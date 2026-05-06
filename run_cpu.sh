@@ -5,16 +5,12 @@
 #SBATCH --time=48:00:00
 #SBATCH --mincpus=2
 
-# sets up everything beyond here to behave like your usual terminal
 source ~/.bashrc
 
-# assumes you have /home/<NETID>/my-project-dir where you want to run things
 cd ~/shallow-nn-wave-eq
 
-# assumes you have a conda environment called my_conda_env
 conda activate shallownn
 
-# ensure all requirements are installed [optional]
 python -m uv pip install -r requirements.txt
 
 # always good to check
