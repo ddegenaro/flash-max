@@ -16,6 +16,8 @@
 
 - `maxwell_equation.py` - the architecture of FLASH-MAX, fully specified in `torch`. Can run the `main()` method to test functionality.
 
+- `move_gifs.py` - move some representative gifs into a dedicated directory `flash_max_gifs/` for ease of access.
+
 - `symlog.py` - alternative loss function utilities. Not used in the FLASH-MAX paper.
 
 - `train.py` - script to train a FLASH-MAX model. Can learn a custom function defined in `function.py`, or one of the 4 predefined solutions with `--soln=x` for `x` in `{1, 2, 3, 4}`. Has many other command-line arguments to set IC, BC, training and validation domains, data quantity, and various training hyperparameters.
