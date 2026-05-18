@@ -18,12 +18,12 @@ class MaxwellSimple(PCNN):
         self,
         width: int = 10,
         c: float = 1.,
+        num_ps: int = 2,
         input_dim: int = 1,
         output_dim: int = -1,
         activation: str = 'relu',
         do: float = 0.1,
         init = 'kaiming',
-        keys = ('1+', '1-', '2+', '2-', '3+', '3-', '4+', '4-', '5+', '5-', '6+', '6-'),
         gain = None,
         q = 0.7,
         training_data = (None, None),
@@ -49,7 +49,13 @@ class MaxwellSimple(PCNN):
         self.W = nn.ParameterDict()
         self.b = nn.ParameterDict()
         
-        self.keys = keys
+        assert num_ps in (2, 6), f'num_ps is {num_ps} but should be 2 or 6.'
+        self.num_ps = num_ps
+        self.keys = tuple(sorted([
+            f'{x}+' for x in range(1, self.num_ps + 1)
+        ] + [
+            f'{x}-' for x in range(1, self.num_ps + 1)
+        ]))
         
         if self.init == 'custom':
             try:
@@ -136,79 +142,80 @@ class MaxwellSimple(PCNN):
         
             A = self.dropout(self.activation(X @ Z + self.b[key])) * self.W[key]
 
-            # if '1' in key:
-            #     P = torch.vstack((
-            #         -Z[1] * Z[3],
-            #         -Z[2] * Z[3],
-            #         Z[0]**2 - Z[3]**2,
-            #         -Z[0] * Z[2],
-            #         Z[0] * Z[1],
-            #         torch.zeros(self.width, device=Z.device)
-            #     )).T
-            # elif '2' in key:
-            #     P = torch.vstack((
-            #         Z[1] * Z[2],
-            #         -Z[0]**2 + Z[2]**2,
-            #         Z[2] * Z[3],
-            #         -Z[0] * Z[3],
-            #         torch.zeros(self.width, device=Z.device),
-            #         Z[0] * Z[1]
-            #     )).T
-            
-            if '1' in key:
-                P = torch.vstack((
-                    torch.zeros(self.width, device=Z.device),
-                    -Z[0] * Z[3],
-                    Z[0] * Z[2],
-                    -Z[2]**2 - Z[3]**2,
-                    Z[2] * Z[1],
-                    Z[3] * Z[1]
-                )).T
-            elif '2' in key:
-                P = torch.vstack((
-                    Z[0] * Z[3],
-                    torch.zeros(self.width, device=Z.device),
-                    -Z[0] * Z[1],
-                    Z[1] * Z[2],
-                    -Z[1]**2 - Z[3]**2,
-                    Z[3] * Z[2]
-                )).T
-            elif '3' in key:
-                P = torch.vstack((
-                    -Z[0] * Z[2],
-                    Z[0] * Z[1],
-                    torch.zeros(self.width, device=Z.device),
-                    Z[1] * Z[3],
-                    Z[2] * Z[3],
-                    -Z[1]**2 - Z[2]**2
-                )).T
-            if '4' in key:
-                P = torch.vstack((
-                    -Z[2]**2 - Z[3]**2,
-                    Z[2] * Z[1],
-                    Z[3] * Z[1],
-                    torch.zeros(self.width, device=Z.device),
-                    Z[0] * Z[3],
-                    -Z[0] * Z[2],
-                )).T
-            elif '5' in key:
-                P = torch.vstack((
-                    Z[1] * Z[2],
-                    -Z[1]**2 - Z[3]**2,
-                    Z[3] * Z[2],
-                    -Z[0] * Z[3],
-                    torch.zeros(self.width, device=Z.device),
-                    Z[0] * Z[1],
-                )).T
-            else: # 6 in key
-                P = torch.vstack((
-                    Z[1] * Z[3],
-                    Z[2] * Z[3],
-                    -Z[1]**2 - Z[2]**2,
-                    Z[0] * Z[2],
-                    -Z[0] * Z[1],
-                    torch.zeros(self.width, device=Z.device),
-                )).T
+            if self.num_ps == 2:
+                if '1' in key:
+                    P = torch.vstack((
+                        -Z[1] * Z[3],
+                        -Z[2] * Z[3],
+                        Z[0]**2 - Z[3]**2,
+                        -Z[0] * Z[2],
+                        Z[0] * Z[1],
+                        torch.zeros(self.width, device=Z.device)
+                    )).T
+                elif '2' in key:
+                    P = torch.vstack((
+                        Z[1] * Z[2],
+                        -Z[0]**2 + Z[2]**2,
+                        Z[2] * Z[3],
+                        -Z[0] * Z[3],
+                        torch.zeros(self.width, device=Z.device),
+                        Z[0] * Z[1]
+                    )).T
+            else:
+                if '1' in key:
+                    P = torch.vstack((
+                        torch.zeros(self.width, device=Z.device),
+                        -Z[0] * Z[3],
+                        Z[0] * Z[2],
+                        -Z[2]**2 - Z[3]**2,
+                        Z[2] * Z[1],
+                        Z[3] * Z[1]
+                    )).T
+                elif '2' in key:
+                    P = torch.vstack((
+                        Z[0] * Z[3],
+                        torch.zeros(self.width, device=Z.device),
+                        -Z[0] * Z[1],
+                        Z[1] * Z[2],
+                        -Z[1]**2 - Z[3]**2,
+                        Z[3] * Z[2]
+                    )).T
+                elif '3' in key:
+                    P = torch.vstack((
+                        -Z[0] * Z[2],
+                        Z[0] * Z[1],
+                        torch.zeros(self.width, device=Z.device),
+                        Z[1] * Z[3],
+                        Z[2] * Z[3],
+                        -Z[1]**2 - Z[2]**2
+                    )).T
+                if '4' in key:
+                    P = torch.vstack((
+                        -Z[2]**2 - Z[3]**2,
+                        Z[2] * Z[1],
+                        Z[3] * Z[1],
+                        torch.zeros(self.width, device=Z.device),
+                        Z[0] * Z[3],
+                        -Z[0] * Z[2],
+                    )).T
+                elif '5' in key:
+                    P = torch.vstack((
+                        Z[1] * Z[2],
+                        -Z[1]**2 - Z[3]**2,
+                        Z[3] * Z[2],
+                        -Z[0] * Z[3],
+                        torch.zeros(self.width, device=Z.device),
+                        Z[0] * Z[1],
+                    )).T
+                else: # 6 in key
+                    P = torch.vstack((
+                        Z[1] * Z[3],
+                        Z[2] * Z[3],
+                        -Z[1]**2 - Z[2]**2,
+                        Z[0] * Z[2],
+                        -Z[0] * Z[1],
+                        torch.zeros(self.width, device=Z.device),
+                    )).T
                 
             R += A @ P
         

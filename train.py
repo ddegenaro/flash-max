@@ -290,6 +290,7 @@ def main(args):
     model: PCNN = model_class(
         width=args.width,
         c=c,
+        num_ps=args.num_ps,
         input_dim=args.input_dim,
         output_dim=args.output_dim,
         activation=args.activation,
@@ -478,6 +479,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '--num_ps',
+        type=str,
+        default='2', # 8
+        help='Number of p\'s to use.'
+    )
+    parser.add_argument(
         '--input_dim',
         type=int,
         default=input_dim,
@@ -561,6 +568,9 @@ if __name__ == "__main__":
         default=10_000,
         help='Number of samples to generate for validation. Default 10,000.'
     )
+    
+    
+    
     parser.add_argument(
         '--init',
         type=str,
@@ -597,6 +607,8 @@ if __name__ == "__main__":
         default=50,
         help='Used for max epochs in custom initialization lin reg.'
     )
+    
+    
     
     parser.add_argument(
         '--noise_scale',
