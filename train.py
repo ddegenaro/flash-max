@@ -283,7 +283,10 @@ def main(args):
         activation=args.activation,
         do=args.do,
         init=args.init,
-        gain=args.gain
+        gain=args.gain,
+        q=args.q,
+        training_data = (train_inputs, train_targets),
+        b=args.b
     ).to(device)
 
     # bilevel optimization, more-or-less deprecated
@@ -557,8 +560,20 @@ if __name__ == "__main__":
     parser.add_argument(
         '--init',
         type=str,
-        default='xavier normal',
-        help='Normal or Kaiming initialization.'
+        default='custom',
+        help='Normal or Kaiming initialization (or custom).'
+    )
+    parser.add_argument(
+        '--q',
+        type=float,
+        default=0.7,
+        help='Used in custom initialization.'
+    )
+    parser.add_argument(
+        '--b',
+        type=float,
+        default=0.5,
+        help='Used for bias in custom initialization.'
     )
     parser.add_argument(
         '--noise_scale',

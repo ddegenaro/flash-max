@@ -1,42 +1,48 @@
 import torch
+import math
 from torch import Tensor
 
 c = 1.0
 
-# Radial waves
+# Random solution
+
+generator = torch.Generator()
+generator.manual_seed(42)
+
+_k = torch.randn((100, 3), generator=generator) * math.sqrt(0.1)
+_b = torch.randn(100, generator=generator)
+_omega = torch.sqrt(_k[:, 0]**2 + _k[:, 1]**2 + _k[:, 2]**2)
 
 def u(t: Tensor, x: Tensor, y: Tensor, z: Tensor) -> Tensor:
-    """
-    Computes exact E and B fields analytically for a spherical potential u(t, x, y, z) = f(r-t)/r.
-    Adapted for f(s) = 0.01 * exp(-10 * (s - 0.7)^2).
-    """
-    # 1. Calculate radius (clamped to avoid division by zero at the origin)
-    r = torch.sqrt(x**2 + y**2 + z**2)
+     
+    global _k, _b, _omega
+    
+    _k = _k.to(t.device)
+    _b = _b.to(t.device)
+    _omega = _omega.to(t.device)
+     
+    shape = t.shape
+    t_f, x_f, y_f, z_f = t.reshape(-1), x.reshape(-1), y.reshape(-1), z.reshape(-1)
 
-    # 2. Phase argument
-    s = r - t
-    s_mc = s - 0.7  # <--- UPDATED SHIFT HERE
-    s_mc_sq = s_mc**2
+    s = (_omega.unsqueeze(1) * t_f.unsqueeze(0) +
+         _k[:, 0].unsqueeze(1) * x_f.unsqueeze(0) +
+         _k[:, 1].unsqueeze(1) * y_f.unsqueeze(0) +
+         _k[:, 2].unsqueeze(1) * z_f.unsqueeze(0) +
+         _b.unsqueeze(1))
 
-    # 3. Base function f(s) and its derivatives
-    exp_term = torch.exp(-10.0 * s_mc_sq)
-    f = 0.01 * exp_term
-    f_p = -0.2 * s_mc * exp_term
-    f_pp = -0.2 * exp_term * (1.0 - 20.0 * s_mc_sq)
+    s_minus_c = s - 0.3
+    s_minus_c_sq = s_minus_c ** 2
+    F = -0.2 * torch.exp(-10.0 * s_minus_c_sq) * (1.0 - 20.0 * s_minus_c_sq)
 
-    # 4. Helper scalar fields (g, h, q) based on analytical differentiation
-    g = f_p / (r**2) - f / (r**3)
-    h = f_pp / (r**3) - 3.0 * f_p / (r**4) + 3.0 * f / (r**5)
-    q = -f_pp / (r**2) + f_p / (r**3)
+    k1, k2, k3 = _k[:, 0:1], _k[:, 1:2], _k[:, 2:3]
+    w = _omega.unsqueeze(1)
 
-    # 5. Calculate Electric Field components
-    Ex = x * z * h - y * q
-    Ey = y * z * h + x * q
-    Ez = g + (z**2) * h - f_pp / r
+    Ex = torch.sum((k1 * k3 - k2 * w) * F, dim=0).view(shape)
+    Ey = torch.sum((k2 * k3 + k1 * w) * F, dim=0).view(shape)
+    Ez = torch.sum((k3**2 - w**2)       * F, dim=0).view(shape)
 
-    # 6. Calculate Magnetic Field components
-    Bx = y * q + x * z * h
-    By = -x * q + y * z * h
-    Bz = -2.0 * g - (x**2 + y**2) * h
+    Bx = torch.sum((w * k2 + k1 * k3)   * F, dim=0).view(shape)
+    By = torch.sum((-w * k1 + k2 * k3)  * F, dim=0).view(shape)
+    Bz = torch.sum((-k1**2 - k2**2)     * F, dim=0).view(shape)
 
-    return 10.0 * torch.vstack((Ex, Ey, Ez, Bx, By, Bz))
+    return torch.vstack((Ex, Ey, Ez, Bx, By, Bz))

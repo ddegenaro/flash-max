@@ -18,7 +18,10 @@ class MaxwellSimple(PCNN):
         do: float = 0.1,
         init = 'kaiming',
         keys = ('1+', '1-', '2+', '2-'),# '3+', '3-', '4+', '4-', '5+', '5-', '6+', '6-'),
-        gain = None
+        gain = None,
+        q = 0.7,
+        training_data = (None, None),
+        b = 0.5
     ):
         
         super().__init__(
@@ -38,7 +41,14 @@ class MaxwellSimple(PCNN):
         
         self.keys = keys
         
-        # breakpoint()
+        if self.init == 'custom':
+            try:
+                training_inputs = training_data[0]
+                # note: only considering t = 0
+                gamma_0 = (training_inputs[training_inputs[:, 0] == 0][:, 1:] ** 2).mean()
+            except:
+                print('Using 0.3 for gamma_0.')
+                gamma_0 = 0.3
         
         for key in self.keys:
             self.Z_x[key] = nn.Parameter(torch.zeros(3, self.width))
@@ -57,6 +67,12 @@ class MaxwellSimple(PCNN):
             elif self.init == 'xavier uniform':
                 nn.init.xavier_uniform_(self.Z_x[key].data, gain=self.gain)
                 nn.init.xavier_uniform_(self.W[key].data.T, gain=self.gain)
+            elif self.init == 'custom':
+                nn.init.normal_(self.Z_x[key], mean=0, std=q**2 / gamma_0)
+                nn.init.constant_(self.b[key], b)
+                # need more info about self.W with lin reg
+
+        breakpoint()
         
     def forward(self, t, x):
         
