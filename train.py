@@ -104,7 +104,7 @@ def train_epoch(
         s = i + 1
         if s % log_freq == 0: # console log
             al = total_loss_train / s
-            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv_train:.4f} - Val Loss: {lv_train:.4f} - Avg: {al:.4f}')
+            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv_train:.4f} - Val Loss: {lv_val:.4f} - Avg: {al:.4f}')
     time_train = time() - start_train # stop timing
     
     # breakpoint()
@@ -274,6 +274,18 @@ def main(args):
     # easy way to get model from string name
     model_class = eval(args.model_class)
     
+    # create a directory for this experiment, next smallest number available
+    os.makedirs('experiments', exist_ok=True)
+    experiments_list = os.listdir('experiments')
+    try:
+        experiments_list.remove('.DS_Store')
+    except:
+        pass
+    this_experiment = str(1 + max(
+        [int(d) for d in experiments_list] + [0]
+    ))
+    os.makedirs(os.path.join('experiments', this_experiment))
+    
     # init model
     model: PCNN = model_class(
         width=args.width,
@@ -286,7 +298,11 @@ def main(args):
         gain=args.gain,
         q=args.q,
         training_data = (train_inputs, train_targets),
-        b=args.b
+        b=args.b,
+        init_lr=args.init_lr,
+        init_wd=args.init_wd,
+        init_max_epochs=args.init_max_epochs,
+        experiment_num=this_experiment
     ).to(device)
 
     # bilevel optimization, more-or-less deprecated
@@ -329,18 +345,6 @@ def main(args):
         loss_fn = lambda x, y: torch.nn.MSELoss()(x, symlog(y))
     else:
         loss_fn = torch.nn.MSELoss()
-    
-    # create a directory for this experiment, next smallest number available
-    os.makedirs('experiments', exist_ok=True)
-    experiments_list = os.listdir('experiments')
-    try:
-        experiments_list.remove('.DS_Store')
-    except:
-        pass
-    this_experiment = str(1 + max(
-        [int(d) for d in experiments_list] + [0]
-    ))
-    os.makedirs(os.path.join('experiments', this_experiment))
 
     # write hyperparameters to file
     hparams = vars(args)
@@ -560,7 +564,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--init',
         type=str,
-        default='custom',
+        default='xavier normal',
         help='Normal or Kaiming initialization (or custom).'
     )
     parser.add_argument(
@@ -575,6 +579,25 @@ if __name__ == "__main__":
         default=0.5,
         help='Used for bias in custom initialization.'
     )
+    parser.add_argument(
+        '--init_lr',
+        type=float,
+        default=5e-2,
+        help='Used for lr in custom initialization lin reg.'
+    )
+    parser.add_argument(
+        '--init_wd',
+        type=float,
+        default=5e-5,
+        help='Used for wd in custom initialization lin reg.'
+    )
+    parser.add_argument(
+        '--init_max_epochs',
+        type=int,
+        default=50,
+        help='Used for max epochs in custom initialization lin reg.'
+    )
+    
     parser.add_argument(
         '--noise_scale',
         type=float,
@@ -626,7 +649,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--seed',
         type=int,
-        default=42,
+        default=5,
         help='Random seed.'
     )
     parser.add_argument(
@@ -653,7 +676,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--width',
         type=int,
-        default=10_000,
+        default=1_000,
         help='Width of the hidden layer of the neural network. Default 1000.'
     )
     parser.add_argument(
@@ -730,27 +753,27 @@ if __name__ == "__main__":
         '--train_maxes',
         type=float,
         nargs='+',
-        default=[1.0] + [1.0] * input_dim,
+        default=[0.0] + [1.0] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_mins',
         type=float,
         nargs='+',
-        default=[0.0] + [0.0] * input_dim,
+        default=[0.0] + [0.2] * input_dim,
         help='Minimum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--val_maxes',
         type=float,
         nargs='+',
-        default=[1.0] + [1.0] * input_dim,
+        default=[0.1] + [0.8] * input_dim,
         help='Maximum value for each dimension. First dimension interpreted as time.'
     )
     parser.add_argument(
         '--soln',
         type=int,
-        default=4,
+        default=1,
         help='Which solution to work with. (1-4). 0 means use whatever is in function.py as is.'
     )
     parser.add_argument(

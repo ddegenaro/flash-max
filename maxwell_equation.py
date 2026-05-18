@@ -1,10 +1,16 @@
-from typing import Callable
+from typing import Callable, Tuple
+from time import time
+import os
 
 import torch
 from torch import nn
+from torch import Tensor
+from torch.optim import AdamW
 
 from utils import PCNN, tensor_round
 from data_sampler import grid_data
+
+
 
 class MaxwellSimple(PCNN):
 
@@ -17,11 +23,15 @@ class MaxwellSimple(PCNN):
         activation: str = 'relu',
         do: float = 0.1,
         init = 'kaiming',
-        keys = ('1+', '1-', '2+', '2-'),# '3+', '3-', '4+', '4-', '5+', '5-', '6+', '6-'),
+        keys = ('1+', '1-', '2+', '2-', '3+', '3-', '4+', '4-', '5+', '5-', '6+', '6-'),
         gain = None,
         q = 0.7,
         training_data = (None, None),
-        b = 0.5
+        b = 0.5,
+        init_lr = 5e-2,
+        init_wd = 5e-5,
+        init_max_epochs = 100,
+        experiment_num = None
     ):
         
         super().__init__(
@@ -70,9 +80,40 @@ class MaxwellSimple(PCNN):
             elif self.init == 'custom':
                 nn.init.normal_(self.Z_x[key], mean=0, std=q**2 / gamma_0)
                 nn.init.constant_(self.b[key], b)
-                # need more info about self.W with lin reg
-
-        breakpoint()
+        
+        if self.init == 'custom':
+            for key in self.keys:
+                self.Z_x[key].requires_grad = False
+                self.b[key].requires_grad = False
+            
+            optimizer = AdamW(
+                self.parameters(),
+                lr=init_lr,
+                weight_decay=init_wd
+            )
+            
+            inputs, targets = training_data
+            
+            loss_fn = nn.MSELoss()
+            
+            total_time = 0
+            for i in range(init_max_epochs):
+                start = time()
+                optimizer.zero_grad()
+                outputs = self(inputs[:, 0].unsqueeze(1), inputs[:, 1:])
+                loss = loss_fn(outputs, targets)
+                loss.backward()
+                optimizer.step()
+                total_time += time() - start
+                print(f'{(i+1)}/{init_max_epochs}: Init process loss: {loss.item()}\r')
+            with open(os.path.join('experiments', f'{experiment_num}', 'init_time.txt'), 'w+') as f:
+                f.write(f'{total_time}')
+                
+            for key in self.keys:
+                self.Z_x[key].requires_grad = True
+                self.b[key].requires_grad = True
+                
+            
         
     def forward(self, t, x):
         
@@ -95,79 +136,79 @@ class MaxwellSimple(PCNN):
         
             A = self.dropout(self.activation(X @ Z + self.b[key])) * self.W[key]
 
-            if '1' in key:
-                P = torch.vstack((
-                    -Z[1] * Z[3],
-                    -Z[2] * Z[3],
-                    Z[0]**2 - Z[3]**2,
-                    -Z[0] * Z[2],
-                    Z[0] * Z[1],
-                    torch.zeros(self.width, device=Z.device)
-                )).T
-            elif '2' in key:
-                P = torch.vstack((
-                    Z[1] * Z[2],
-                    -Z[0]**2 + Z[2]**2,
-                    Z[2] * Z[3],
-                    -Z[0] * Z[3],
-                    torch.zeros(self.width, device=Z.device),
-                    Z[0] * Z[1]
-                )).T
-            
             # if '1' in key:
             #     P = torch.vstack((
-            #         torch.zeros(self.width, device=Z.device),
-            #         Z[0] * Z[3],
+            #         -Z[1] * Z[3],
+            #         -Z[2] * Z[3],
+            #         Z[0]**2 - Z[3]**2,
             #         -Z[0] * Z[2],
-            #         -Z[2]**2 - Z[3]**2,
-            #         Z[2] * Z[1],
-            #         Z[3] * Z[1]
+            #         Z[0] * Z[1],
+            #         torch.zeros(self.width, device=Z.device)
             #     )).T
             # elif '2' in key:
             #     P = torch.vstack((
+            #         Z[1] * Z[2],
+            #         -Z[0]**2 + Z[2]**2,
+            #         Z[2] * Z[3],
             #         -Z[0] * Z[3],
             #         torch.zeros(self.width, device=Z.device),
-            #         Z[0] * Z[1],
-            #         Z[1] * Z[2],
-            #         -Z[1]**2 - Z[3]**2,
-            #         Z[3] * Z[2]
+            #         Z[0] * Z[1]
             #     )).T
-            # elif '3' in key:
-            #     P = torch.vstack((
-            #         Z[0] * Z[2],
-            #         -Z[0] * Z[1],
-            #         torch.zeros(self.width, device=Z.device),
-            #         Z[1] * Z[3],
-            #         Z[2] * Z[3],
-            #         -Z[3]**2 - Z[2]**2
-            #     )).T
-            # elif '4' in key:
-            #     P = torch.vstack((
-            #         -Z[2]**2 - Z[3]**2,
-            #         Z[2] * Z[1],
-            #         Z[3] * Z[1],
-            #         torch.zeros(self.width, device=Z.device),
-            #         Z[0] * Z[3],
-            #         -Z[0] * Z[2],
-            #     )).T
-            # elif '5' in key:
-            #     P = torch.vstack((
-            #         Z[1] * Z[2],
-            #         -Z[1]**2 - Z[3]**2,
-            #         Z[3] * Z[2],
-            #         -Z[0] * Z[3],
-            #         torch.zeros(self.width, device=Z.device),
-            #         Z[0] * Z[1],
-            #     )).T
-            # else: # 6 in key
-            #     P = torch.vstack((
-            #         Z[1] * Z[3],
-            #         Z[2] * Z[3],
-            #         -Z[3]**2 - Z[2]**2,
-            #         Z[0] * Z[2],
-            #         Z[0] * Z[1],
-            #         torch.zeros(self.width, device=Z.device),
-            #     )).T
+            
+            if '1' in key:
+                P = torch.vstack((
+                    torch.zeros(self.width, device=Z.device),
+                    -Z[0] * Z[3],
+                    Z[0] * Z[2],
+                    -Z[2]**2 - Z[3]**2,
+                    Z[2] * Z[1],
+                    Z[3] * Z[1]
+                )).T
+            elif '2' in key:
+                P = torch.vstack((
+                    Z[0] * Z[3],
+                    torch.zeros(self.width, device=Z.device),
+                    -Z[0] * Z[1],
+                    Z[1] * Z[2],
+                    -Z[1]**2 - Z[3]**2,
+                    Z[3] * Z[2]
+                )).T
+            elif '3' in key:
+                P = torch.vstack((
+                    -Z[0] * Z[2],
+                    Z[0] * Z[1],
+                    torch.zeros(self.width, device=Z.device),
+                    Z[1] * Z[3],
+                    Z[2] * Z[3],
+                    -Z[1]**2 - Z[2]**2
+                )).T
+            if '4' in key:
+                P = torch.vstack((
+                    -Z[2]**2 - Z[3]**2,
+                    Z[2] * Z[1],
+                    Z[3] * Z[1],
+                    torch.zeros(self.width, device=Z.device),
+                    Z[0] * Z[3],
+                    -Z[0] * Z[2],
+                )).T
+            elif '5' in key:
+                P = torch.vstack((
+                    Z[1] * Z[2],
+                    -Z[1]**2 - Z[3]**2,
+                    Z[3] * Z[2],
+                    -Z[0] * Z[3],
+                    torch.zeros(self.width, device=Z.device),
+                    Z[0] * Z[1],
+                )).T
+            else: # 6 in key
+                P = torch.vstack((
+                    Z[1] * Z[3],
+                    Z[2] * Z[3],
+                    -Z[1]**2 - Z[2]**2,
+                    Z[0] * Z[2],
+                    -Z[0] * Z[1],
+                    torch.zeros(self.width, device=Z.device),
+                )).T
                 
             R += A @ P
         

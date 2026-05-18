@@ -110,6 +110,11 @@ for i in range(start, end+1):
         min_err = df['rel_l2_error'].min()
         if min_err > args.min_err:
             continue
+        
+    if os.path.exists(os.path.join('experiments', f'{i}', 'init_time.txt')):
+        init_time = float(open(os.path.join('experiments', f'{i}', 'init_time.txt')).read())
+    else:
+        init_time = 0.
     
     print(f'Processing experiment {i}...')
     print(f'soln:         {data['soln']}')
@@ -127,14 +132,15 @@ for i in range(start, end+1):
     # print(f'training:     {data['train_mins']} -> {data['train_maxes']}')
     # print(f'validation:   {data['val_mins']} -> {data['val_maxes']}')
     # print(f'add_bc:       {data['add_bc']}')
-    print(f'total time:   {df['training_time'].sum()}')
+    print(f'init time:    {init_time}')
+    print(f'total time:   {df['training_time'].sum() + init_time}')
 
     df['rounded_error'] = df['rel_l2_error'].round(3)
 
     try:
         first_epoch = int(df[df['rel_l2_error'] < 0.01].iloc[0]['epoch'])
 
-        first_time = df[df['epoch'] <= first_epoch]['training_time'].sum().item()
+        first_time = df[df['epoch'] <= first_epoch]['training_time'].sum().item() + init_time
 
         print(f'Training time to first error <1%: {first_time:.1f}')
     except:
@@ -144,7 +150,7 @@ for i in range(start, end+1):
         
     min_epoch = int(df[df['rounded_error'] == min_rounded_error].iloc[0]['epoch'])
 
-    min_time = df[df['epoch'] <= min_epoch]['training_time'].sum().item()
+    min_time = df[df['epoch'] <= min_epoch]['training_time'].sum().item() + init_time
 
     print(f'Training time to min error of {100*min_rounded_error:.1f}%: {min_time:.1f}')
     
