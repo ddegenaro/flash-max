@@ -18,7 +18,7 @@ class MaxwellSimple(PCNN):
         self,
         width: int = 10,
         c: float = 1.,
-        num_ps: int = 2,
+        num_ps: str = '2',
         input_dim: int = 1,
         output_dim: int = -1,
         activation: str = 'relu',
@@ -48,6 +48,8 @@ class MaxwellSimple(PCNN):
         self.Z_x = nn.ParameterDict() # Z_1, Z_2, Z_3
         self.W = nn.ParameterDict()
         self.b = nn.ParameterDict()
+        
+        num_ps = int(num_ps)
         
         assert num_ps in (2, 6), f'num_ps is {num_ps} but should be 2 or 6.'
         self.num_ps = num_ps
