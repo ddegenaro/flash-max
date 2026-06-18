@@ -104,7 +104,7 @@ def train_epoch(
         s = i + 1
         if s % log_freq == 0: # console log
             al = total_loss_train / s
-            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv_train:.4f} - Val Loss: {lv_val:.4f} - Avg: {al:.4f}')
+            print(f'Epoch: {es:02d} - Step: {s:04d} - Train Loss: {lv_train:.4f} - Avg: {al:.4f}')
     time_train = time() - start_train # stop timing
     
     # breakpoint()
