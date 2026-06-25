@@ -217,7 +217,7 @@ def main(args):
         batch_size = args.batch_size
         
     # retrieve appropriate gpu name if using, else cpu
-    device = get_device(args.use_cpu)
+    device = get_device(args.use_cpu, args.visible_device)
         
     if args.preload_data:
         train_inputs = train_inputs.to(device)
@@ -417,9 +417,6 @@ def main(args):
             if mean_val_f_sq == 0:
                 mean_val_f_sq = 1e-12
             rel_l2_error = sqrt(mse_val) / sqrt(mean_val_f_sq) # relative L2 error
-            if args.early_stopping:
-                if rel_l2_error < 0.05 and total_time > 70.0:
-                    return
             
             fp.write( # log immediately, don't wait, it doesn't count towards training time
                 f'{epoch+1}\t{mse_train}\t{mse_val}\t{training_time}\t{val_time}\t{rel_l2_error}\n'
@@ -449,10 +446,19 @@ def main(args):
                             last_k_train_losses = []
                             
             if total_time > args.max_time * 60:
+                print('BREAK - total time reached.')
                 break
+            
             epoch += 1
+            
             if args.max_time is None and epoch == args.max_epochs:
+                print('BREAK - max epochs.')
                 break
+            
+            if args.early_stopping:
+                if rel_l2_error < 0.05 and total_time > 70.0:
+                    print('BREAK - error < 0.05 and trained at least 70 seconds.')
+                    break
 
     # console message
     print('Done.')
@@ -735,6 +741,11 @@ if __name__ == "__main__":
         action='store_true',
         default=False,
         help='Whether to train on CPU.'
+    )
+    parser.add_argument(
+        '--visible_device',
+        type=int,
+        default=0
     )
     parser.add_argument(
         '--preload_data',

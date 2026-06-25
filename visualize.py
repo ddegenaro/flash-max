@@ -46,7 +46,7 @@ def main(args):
     is_3d_input = (input_dim == 3)
     double_quiver = (output_dim == 6)
     
-    DEVICE = get_device(use_cpu=False)
+    DEVICE = get_device(use_cpu=False, args.visible_device)
 
     model_class = eval(hparams['model_class'])
     model = model_class(
@@ -555,6 +555,11 @@ if __name__ == "__main__":
             'snapshot_true_E, snapshot_true_B, snapshot_E, snapshot_B, '
             'snapshot_diff_E, snapshot_diff_B.'
         )
+    )
+    parser.add_argument(
+        '--visible_device',
+        type=int,
+        default=0
     )
 
     args = parser.parse_args()

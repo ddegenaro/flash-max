@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 
-def get_device(use_cpu):
+def get_device(use_cpu: bool, visible_device: int):
     
     if use_cpu:
         return 'cpu'
@@ -10,7 +10,7 @@ def get_device(use_cpu):
         if torch.backends.mps.is_available():
             return 'mps'
         elif torch.cuda.is_available():
-            return 'cuda:2'
+            return f'cuda:{visible_device}'
         else:
             return 'cpu'
     

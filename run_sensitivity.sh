@@ -8,9 +8,9 @@ PYTHON_PATH="$(which python)"
 
 # widths, activations
 
-for n in 100 1000 10000 100000 1000000; do
+for n in 200 400 600 800; do
 
-    for w in 2000 4000 8000 16000 32000 64000 128000; do
+    for w in 36000 40000 44000 48000 52000 56000 60000; do
 
         python train.py \
             --train_mins  0.0 0.0 0.0 0.0 \
@@ -23,6 +23,7 @@ for n in 100 1000 10000 100000 1000000; do
             --do_masking \
             --n_train ${n} \
             --width ${w} \
+            --visible_device 3 \
     
     done
 
