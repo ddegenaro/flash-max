@@ -10,7 +10,7 @@ PYTHON_PATH="$(which python)"
 
 for n in 0.01 0.001 0.0001 0.00001; do
 
-    for i in 1; do
+    for i in 2 3 4; do
 
         for s in 1 2 3 4 5; do
 
