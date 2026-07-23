@@ -8,6 +8,7 @@ experiments/*/*.pdf
 wave_nbs/
 pinn_data/
 gp_data/
+gp_data_l40s/
 fem_data/
 heat_scripts/
 vectorwavenet/
