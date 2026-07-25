@@ -661,13 +661,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--early_stopping',
         action='store_true',
-        default=True,
+        default=False,
         help='Whether to use early stopping.'
     )
     parser.add_argument(
         '--seed',
         type=int,
-        default=5,
+        default=42,
         help='Random seed.'
     )
     parser.add_argument(
