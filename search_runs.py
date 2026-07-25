@@ -1,7 +1,7 @@
 import json, os, glob
 import pandas as pd
 
-val_err_threshold = 0.03
+val_err_threshold = 0.01
 
 search_terms = {
     'soln': 2,
@@ -49,7 +49,11 @@ results = sorted(results)
 
 for result in results:
     
-    log = pd.read_csv(os.path.join('experiments', result, 'log.tsv'), sep='\t')
+    try:
+        log = pd.read_csv(os.path.join('experiments', result, 'log.tsv'), sep='\t')
+    except:
+        print(f'Missing log {result}')
+        continue
     
     rows = log[log['rel_l2_error'] < val_err_threshold]
     
