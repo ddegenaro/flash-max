@@ -10,6 +10,7 @@ pinn_data/
 gp_data/
 gp_data_l40s/
 fem_data/
+fem_long_data/
 heat_scripts/
 vectorwavenet/
 .DS_Store
