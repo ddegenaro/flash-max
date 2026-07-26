@@ -4,7 +4,7 @@ import pandas as pd
 val_err_threshold = 0.01
 
 search_terms = {
-    'soln': 2,
+    'soln': 3,
     'add_bc': True,
     'do_masking': True,
     "train_mins": [
