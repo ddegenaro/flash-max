@@ -6,7 +6,7 @@ cd ~/shallow-nn-wave-eq
 
 PYTHON_PATH="$(which python)"
 
-for n in 2000 5000 10000 20000 50000; do
+for n in 50000; do
 
     python train.py \
         --train_mins  0.0 0.0 0.0 0.0 \
@@ -17,10 +17,10 @@ for n in 2000 5000 10000 20000 50000; do
         --soln 3 \
         --add_bc \
         --do_masking \
-        --max_time 60 \
+        --max_time 360 \
         --max_epochs 100000 \
-        --width 10000 \
+        --width 50000 \
         --n_train ${n} \
-        --visible_device 2 \
+        --visible_device 1 \
 
 done
