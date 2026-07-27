@@ -1,7 +1,7 @@
 import json, os, glob
 import pandas as pd
 
-val_err_threshold = 0.01
+val_err_threshold = 0.003
 
 search_terms = {
     'soln': 3,
@@ -61,5 +61,7 @@ for result in results:
         # breakpoint()
         first_epoch = log[log['rel_l2_error'] < val_err_threshold].iloc[0]['epoch'].item()
         training_time = log[log['epoch'] <= first_epoch]['training_time'].sum().item()
+        
+        hparams = json.load(open(os.path.join('experiments', result, 'hparams.json')))
     
-        print(result, training_time)
+        print(f'{result}: {training_time:.2f}s, width: {hparams['width']}, n_train: {hparams['n_train']}')
