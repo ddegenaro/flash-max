@@ -62,6 +62,9 @@ for result in results:
         first_epoch = log[log['rel_l2_error'] < val_err_threshold].iloc[0]['epoch'].item()
         training_time = log[log['epoch'] <= first_epoch]['training_time'].sum().item()
         
+        additional_training = log[log['epoch'] >= first_epoch]
+        percent_stable = len(additional_training[additional_training['rel_l2_error'] < val_err_threshold]) / len(additional_training) * 100.0
+        
         hparams = json.load(open(os.path.join('experiments', result, 'hparams.json')))
     
-        print(f'{result}: {training_time:.2f}s, width: {hparams['width']}, n_train: {hparams['n_train']}')
+        print(f'{result}: {training_time:.2f}s/{log['training_time'].sum():.2f}s, width: {hparams['width']}, n_train: {hparams['n_train']}, %stable: {percent_stable:.1f}%')
