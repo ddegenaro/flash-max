@@ -46,7 +46,7 @@ def main(args):
     is_3d_input = (input_dim == 3)
     double_quiver = (output_dim == 6)
     
-    DEVICE = get_device(use_cpu=False, args.visible_device)
+    DEVICE = get_device(False, args.visible_device)
 
     model_class = eval(hparams['model_class'])
     model = model_class(
