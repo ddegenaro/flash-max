@@ -1,36 +1,36 @@
 import json, os, glob
 import pandas as pd
 
-val_err_threshold = 0.003
+val_err_threshold = 0.001
 
 search_terms = {
     'soln': 3,
-    'add_bc': True,
-    'do_masking': True,
-    "train_mins": [
-        0.0,
-        0.0,
-        0.0,
-        0.0
-    ],
-    "train_maxes": [
-        1.0,
-        1.0,
-        1.0,
-        1.0
-    ],
-    "val_mins": [
-        0.0,
-        0.0,
-        0.0,
-        0.0
-    ],
-    "val_maxes": [
-        1.0,
-        1.0,
-        1.0,
-        1.0
-    ],
+    # 'add_bc': True,
+    # 'do_masking': True,
+    # "train_mins": [
+    #     0.0,
+    #     0.0,
+    #     0.0,
+    #     0.0
+    # ],
+    # "train_maxes": [
+    #     1.0,
+    #     1.0,
+    #     1.0,
+    #     1.0
+    # ],
+    # "val_mins": [
+    #     0.0,
+    #     0.0,
+    #     0.0,
+    #     0.0
+    # ],
+    # "val_maxes": [
+    #     1.0,
+    #     1.0,
+    #     1.0,
+    #     1.0
+    # ],
 }
 
 results = []
