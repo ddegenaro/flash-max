@@ -14,9 +14,6 @@ def get_device(use_cpu: bool, visible_device: int):
         else:
             return 'cpu'
     
-def tensor_round(tensor: torch.Tensor, prec: int = 4):
-    return [round(x.item(), prec) for x in tensor]
-    
 class PCNN(nn.Module):
     
     def __init__(

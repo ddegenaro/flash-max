@@ -7,7 +7,7 @@
 
 source ~/.bashrc
 
-cd ~/shallow-nn-wave-eq
+cd ~/flash-max
 
 conda activate shallownn
 

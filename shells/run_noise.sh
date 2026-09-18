@@ -2,7 +2,7 @@ conda init bash
 
 conda activate shallownn
 
-cd ~/shallow-nn-wave-eq
+cd ~/flash-max
 
 PYTHON_PATH="$(which python)"
 

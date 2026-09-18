@@ -1,8 +1,6 @@
 import os
-import sys
 import json
 import argparse
-from typing import Any
 
 import seaborn as sns
 from tqdm import tqdm
@@ -11,7 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib import animation
 
-from wave_equation import Wave, WaveSimplified
 from maxwell_equation import MaxwellSimple
 from utils import get_device
 from symlog import symexp
@@ -34,8 +31,6 @@ def main(args):
     f_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(f_module)
     u = f_module.u
-    
-    # breakpoint()
 
     hparams = json.load(
         open(os.path.join(path, 'hparams.json'), 'r', encoding='utf-8')
@@ -71,8 +66,6 @@ def main(args):
     
     if args.length is None:
         length = (maxes[1] - mins[1]) / sr * 3
-        
-    # breakpoint()
     
     input_cols = [torch.arange(mins[0], maxes[0], (maxes[0] - mins[0]) / tr)] + [
         torch.arange(start, end, (end - start) / sr)

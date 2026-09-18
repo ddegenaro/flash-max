@@ -7,7 +7,7 @@ from torch import nn
 from torch import Tensor
 from torch.optim import AdamW
 
-from utils import PCNN, tensor_round
+from utils import PCNN
 from data_sampler import grid_data
 
 

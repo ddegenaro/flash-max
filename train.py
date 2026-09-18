@@ -3,7 +3,6 @@ import json
 import shutil
 import argparse
 from time import time
-from inspect import signature
 import random
 from math import sqrt
 import sys
@@ -14,19 +13,9 @@ import torch
 from torch import nn
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, TensorDataset
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    CosineAnnealingWarmRestarts,
-    SequentialLR,
-    LinearLR
-)
+from torch.optim.lr_scheduler import CosineAnnealingLR, SequentialLR
 
 from data_sampler import random_data, grid_data
-try:
-    from function import p_array
-except:
-    pass
-from wave_equation import Wave, WaveSimplified
 from maxwell_equation import MaxwellSimple
 from utils import get_device, PCNN
 from symlog import symlog
