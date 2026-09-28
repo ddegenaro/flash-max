@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fast Reconstruction of Exact Maxwell Dynamics from Sparse Data</title>
+<meta name="description" content="We introduce FLASH-MAX, a shallow, exact-by-construction neural network architecture for predicting homogeneous electromagnetic fields from sparse pointwise observations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fff; --ink:#1c2030; --muted:#5d6475; --line:#dfe2ea; --accent:#2b4acb; --soft:#f3f5fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14161d; --ink:#e8eaf0; --muted:#9aa1b2; --line:#2a2e3a; --accent:#8fa6ff; --soft:#1c1f29; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 "IBM Plex Sans", system-ui, sans-serif; }
+  main { max-width:1080px; margin:0 auto; padding:56px 20px 80px; }
+  header { text-align:center; margin-bottom:40px; }
+  h1 { font-size:clamp(28px,4.4vw,44px); line-height:1.15; font-weight:600; margin:0 0 20px; }
+  .authors { margin:0; font-size:18px; }
+  .authors a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+  .authors sup { color:var(--muted); }
+  .affil, .venue { color:var(--muted); margin:6px 0 0; font-size:15px; }
+  .links { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
+  .btn { padding:8px 18px; border:1px solid var(--ink); border-radius:999px; color:var(--ink); text-decoration:none; font-weight:500; font-size:15px; }
+  .btn:hover, .btn:focus-visible { background:var(--ink); color:var(--bg); outline:none; }
+  .btn.soon { border-style:dashed; border-color:var(--line); color:var(--muted); pointer-events:none; }
+  section { margin-top:56px; }
+  h2 { font-size:24px; font-weight:600; margin:0 0 14px; }
+  .prose { max-width:760px; margin:0 auto; }
+  .prose p { margin:0 0 1em; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:860px) { .grid { grid-template-columns:repeat(2,1fr); } }
+  figure { margin:0; }
+  figure img { width:100%; display:block; border-radius:6px; background:var(--soft); border:1px solid var(--line); }
+  figcaption { font-size:14px; color:var(--muted); margin-top:6px; }
+  .pair { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+  @media (max-width:700px) { .pair { grid-template-columns:1fr; } }
+  .lead { color:var(--muted); max-width:760px; margin:0 auto 20px; }
+  pre { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:16px; overflow-x:auto; font-size:14px; line-height:1.5; }
+  .cite { position:relative; }
+  .copy-btn { position:absolute; top:10px; right:10px; padding:4px 12px; font:500 13px "IBM Plex Sans", system-ui, sans-serif;
+    color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:999px; cursor:pointer;
+  }
+  .copy-btn:hover { border-color:var(--ink); }
+  footer { margin-top:64px; text-align:center; color:var(--muted); font-size:14px; }
+  a { color:var(--accent); }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+<link rel="canonical" href="https://ddegenaro.github.io/flash-max/">
+
+<!-- Link previews (Slack, X, LinkedIn, iMessage) -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fast Reconstruction of Exact Maxwell Dynamics from Sparse Data">
+<meta property="og:description" content="We introduce FLASH-MAX, a shallow, exact-by-construction neural network architecture for predicting homogeneous electromagnetic fields from sparse pointwise observations.">
+<meta property="og:url" content="https://ddegenaro.github.io/flash-max/">
+<meta property="og:image" content="https://ddegenaro.github.io/flash-max/figs/fig1.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Helps Google Scholar and other indexers recognize the paper -->
+<meta name="citation_title" content="Fast Reconstruction of Exact Maxwell Dynamics from Sparse Data">
+<meta name="citation_author" content="DeGenaro, Dan">
+<meta name="citation_author" content="Li, Xin">
+<meta name="citation_author" content="Amo, Obed">
+<meta name="citation_author" content="Pokojovy, Michael">
+<meta name="citation_author" content="Bargal, Sarah Adel">
+<meta name="citation_author" content="Lange-Hegermann, Markus">
+<meta name="citation_author" content="Raiță, Bogdan">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_conference_title" content="Advances in Neural Information Processing Systems">
+<meta name="citation_arxiv_id" content="2605.20514">
+</head>
+<body>
+<main>
+
+  <header>
+    <h1>Fast Reconstruction of Exact Maxwell Dynamics from Sparse Data</h1>
+    <p class="authors">
+      <a href="https://ddegenaro.github.io/">Dan DeGenaro</a><sup>1</sup>,
+      <a href="https://www.linkedin.com/in/xin-li-b585371a1/">Xin Li</a><sup>2</sup>,
+      <a href="https://www.linkedin.com/in/obed-amo-59bb90b0/">Obed Amo</a><sup>3</sup>,
+      <a href="https://www.linkedin.com/in/michael-pokojovy-65913b86/">Michael Pokojovy</a><sup>3,4</sup>,
+      <a href="https://bargal.georgetown.domains/">Sarah Adel Bargal</a><sup>1</sup>,
+      <a href="https://www.linkedin.com/in/markus-lange-hegermann-a96365111/">Markus Lange-Hegermann</a><sup>5</sup>,
+      <a href="https://gufaculty360.georgetown.edu/s/contact/0031Q00002i2RVuQAM/bogdan-raita">Bogdan Raiţă</a><sup>2</sup>
+    </p>
+    <p class="affil">
+      <sup>1</sup>Department of Computer Science, Georgetown University &nbsp;
+      <sup>2</sup>Department of Mathematics, Georgetown University &nbsp;
+      <sup>3</sup>Department of Mathematics and Statistics, Old Dominion University &nbsp;
+      <sup>4</sup>School of Data Science, Old Dominion University &nbsp;
+      <sup>5</sup>Institute Industrial IT, Department of Computer Science and Automation, OWL University of Applied Sciences and Arts &nbsp;
+    </p>
+    <p class="venue">NeurIPS 2026</p>
+    <div class="links">
+      <a class="btn" href="https://arxiv.org/abs/2605.20514">arXiv</a>
+      <a class="btn" href="https://github.com/ddegenaro/flash-max">Code</a>
+      <!-- When ready: remove class "soon" and set the real href -->
+      <span class="btn soon">Camera-ready (soon)</span>
+      <span class="btn soon">Supplement (soon)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2 style="text-align:center">Abstract</h2>
+    <div class="prose">
+      <p>
+        We introduce FLASH-MAX, a shallow, exact-by-construction neural network architecture for predicting homogeneous electromagnetic
+        fields from sparse pointwise observations. Each hidden neuron represents a separate exact solution to Maxwell’s equations, so
+        that the network satisfies the governing equations symbolically by construction and can be trained end-to-end from sparse data
+        within seconds. We prove a universal approximation result showing that this exact model class remains universal on arbitrary
+        domains. FLASH-MAX reaches sub-1% relative validation error from about 1K sparse pointwise observations in seconds, all while
+        maintaining a zero PDE residual, and keeps single-digit errors even for only 100 observations sampled from 3D space. These results
+        suggest that moving governing structure from the loss into the hypothesis class can dramatically improve the trade-off between
+        precision and optimization speed in scientific machine learning.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="text-align:center">Results</h2>
+    <p class="lead">Both electric and magnetic fields as predicted by FLASH-MAX are nearly indistinguishable from the simulated ground-truth solutions.</p>
+    <div class="grid" id="results"></div>
+  </section>
+
+  <section>
+    <h2 style="text-align:center">Timing</h2>
+    <p class="lead">We plot FLASH-MAX's relative error over time against 3 baselines (PINN, S-EPGP, FEM), plotting only points where the residual is reasonable (< 0.01). FLASH-MAX consistently outperforms all techniques by guaranteeing a zero residual while quickly and reliably achieving high accuracy across problems and setups. FEM does not appear as it cannot achieve a small residual this quickly.</p>
+    <div class="pair">
+      <figure>
+        <img src="figs/timing_plots_bc_False.png" alt="Timing plot 1" loading="lazy">
+        <figcaption>Only initial conditions enforced.</figcaption>
+      </figure>
+      <figure>
+        <img src="figs/timing_plots_bc_True.png" alt="Timing plot 2" loading="lazy">
+        <figcaption>Boundary and initial conditions enforced.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Optional: extra figures. Duplicate the block or delete the section. -->
+  <section>
+    <h2 style="text-align:center">Method</h2>
+    <div class="prose">
+      <figure>
+        <img src="figs/fig1.png" alt="Method overview" loading="lazy">
+        <figcaption>
+          From sparse pointwise observations of a single field instance, FLASH-MAX fits a shallow trainable architecture
+          whose hidden neurons are exact Maxwell solutions, so the predicted field solves Maxwell’s system
+          throughout optimization. The resulting model is exact by construction, expressive on arbitrary
+          domains, and yields accurate reconstruction from sparse data. Exactness is ensured by using computer
+          algebra to obtain the hidden layer restrictions on <em>z</em> and the polynomials <em>p(z)</em> which tie
+          the vectorial weights. Top-left: Sparse data sampled only at <em>t=0</em> (“×” symbols), showing that our
+          model is predictive; data can also be sampled on the boundary of the validation domain (“•” symbols).
+          Bottom: Quiver plot visualization of our fast prediction of an electromagnetic knot (Hopfion) at time
+          <em>t=0.5</em>. The difference to ground truth is indistinguishable.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="text-align:center">Citation</h2>
+    <div class="cite prose">
+      <button class="copy-btn" id="copy-btn" type="button">Copy</button>
+<pre id="bibtex">@inproceedings{degenaro2026flashmax,
+  title     = {{Fast} {Reconstruction} of {Exact} {Maxwell} {Dynamics} from {Sparse} {Data}},
+  author    = {{DeGenaro}, {Dan} and {Li}, {Xin} and {Amo}, {Obed} and {Pokojovy}, {Michael} and {Bargal}, {Sarah Adel} and {Lange-Hegermann}, Markus and {Raiţă}, Bogdan},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026}
+}</pre>
+    </div>
+  </section>
+
+  <footer>Built as a plain HTML page. Feel free to reuse the template.</footer>
+</main>
+
+<script>
+  // Files: gifs/soln_{n}/seed_{seed}/animation_{true_}{field}.gif
+  const solutions = [1, 2, 3, 4];
+  const seed = 1;
+  const columns = [
+    { field: "E", truth: false },
+    { field: "E", truth: true },
+    { field: "B", truth: false },
+    { field: "B", truth: true },
+  ];
+
+  const frag = document.createDocumentFragment();
+  for (const n of solutions) {
+    for (const { field, truth } of columns) {
+      const src = `gifs/soln_${n}/seed_${seed}/animation_${truth ? "true_" : ""}${field}.gif`;
+      const caption = `Solution ${n}: ${truth ? "true" : "predicted"} ${field}`;
+      const f = document.createElement("figure");
+      f.innerHTML = `<img src="${src}" alt="${caption}" loading="lazy" decoding="async"><figcaption>${caption}</figcaption>`;
+      frag.appendChild(f);
+    }
+  }
+  document.getElementById("results").appendChild(frag);
+
+  const copyBtn = document.getElementById("copy-btn");
+  copyBtn.addEventListener("click", async () => {
+    const text = document.getElementById("bibtex").innerText;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = "Copied";
+    } catch {
+      // Fallback: select the text so the user can press Ctrl/Cmd+C
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById("bibtex"));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      copyBtn.textContent = "Press Ctrl/Cmd+C";
+    }
+    setTimeout(() => (copyBtn.textContent = "Copy"), 2000);
+  });
+</script>
+</body>
+</html>
