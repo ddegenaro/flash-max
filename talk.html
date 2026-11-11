@@ -135,7 +135,7 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
  \end{cases}
  \end{align*}
 </p></div>
- <div class="card" style="padding:12px 18px"><p style="font-size:18px;margin-bottom:4px">Fitting from data \((\mathbf{X},\mathbf{E}(\mathbf{X}),\mathbf{B}(\mathbf{X}))\) sampled from some ground-truth solution, covering both initial-value and initial-boundary-value problems. Training</p><p style="font-size:17px;margin:0">\[\mathrm{Loss}=\operatorname{MSE}\left((\hat{\mathbf{E}}(\mathbf{X}),\hat{\mathbf{B}}(\mathbf{X})),(\mathbf{E}(\mathbf{X}),\mathbf{B}(\mathbf{X}))\right)\]</p></div>
+ <div class="card" style="padding:12px 18px"><p style="font-size:18px;margin-bottom:4px">Fitting from data \((\mathbf{X},\mathbf{E}(\mathbf{X}),\mathbf{B}(\mathbf{X}))\) sampled from some ground-truth solution \((\mathbf{E},\mathbf{B})\), we can cover both initial-value and initial-boundary-value problems. We train the standard loss</p><p style="font-size:17px;margin:0">\[\mathrm{Loss}=\operatorname{MSE}\left((\hat{\mathbf{E}}(\mathbf{X}),\hat{\mathbf{B}}(\mathbf{X})),(\mathbf{E}(\mathbf{X}),\mathbf{B}(\mathbf{X}))\right)\]</p></div>
  <div class="network-bottom">
  <ul class="network-points">
   <li style="font-size:19px;margin-bottom:5px"><b>Exact:</b> every neuron is a Maxwell solution, so the residual is 0 by construction. The loss has data only.</li>

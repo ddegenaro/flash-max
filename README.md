@@ -49,5 +49,7 @@
 ### Other
 
 - `.gitignore` - as per usual.
+- `index.html` - project page.
 - `README.md` - this file.
 - `requirements.txt` - Python environment for FLASH-MAX. Works with `conda`.
+- `talk.html` - slides used in our recorded talk for NeurIPS.
