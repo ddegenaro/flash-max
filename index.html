@@ -43,6 +43,15 @@
     color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:999px; cursor:pointer;
   }
   .copy-btn:hover { border-color:var(--ink); }
+  .deck iframe {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1280 / 764;   /* 16:9 stage + the deck's 44px control bar */
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--soft);
+  }
+  .deck-note { text-align: center; font-size: 14px; color: var(--muted); margin-top: 8px; }
   footer { margin-top:64px; text-align:center; color:var(--muted); font-size:14px; }
   a { color:var(--accent); }
   :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
@@ -95,6 +104,7 @@
     <div class="links">
       <a class="btn" href="https://arxiv.org/abs/2605.20514">arXiv</a>
       <a class="btn" href="https://github.com/ddegenaro/flash-max">Code</a>
+      <a class="btn" href="#talk">Slides</a>
       <!-- When ready: remove class "soon" and set the real href -->
       <span class="btn soon">Camera-ready (soon)</span>
       <span class="btn soon">Supplementary material (soon)</span>
@@ -157,6 +167,13 @@
         </figcaption>
       </figure>
     </div>
+  </section>
+
+  <section id="talk" class="deck">
+    <h2 style="text-align:center">Talk</h2>
+    <p class="lead">Spotlight talk slides. Click the slides, then use ← / → (or the on-screen buttons) to navigate.</p>
+    <iframe src="talk.html" title="FLASH-MAX talk slides" loading="lazy"></iframe>
+    <p class="deck-note"><a href="talk.html" target="_blank" rel="noopener">Open slides in a new tab</a></p>
   </section>
 
   <section>
