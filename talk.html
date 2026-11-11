@@ -103,7 +103,7 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
 <section class="slide t2"><div class="run">Our goal </div><h2>Reconstruct Maxwell solutions from sparse data</h2>
  <div style="max-width:1120px;margin-top:10px">
   <p style="font-size:23px">Given measurements \((\mathbf{E}_i,\mathbf{B}_i)(t_i,x_i,y_i,z_i)\), approximate electromagnetic fields \(\mathbf{E},\mathbf{B}\) depending on <br>time \(t\) and space \((x,y,z)\) solving Maxwell's system:</p>
-  <div class="eq"><p style="font-size:22px">\[\partial_t\mathbf{E}=\nabla\times\mathbf{B},\ \ \partial_t\mathbf{B}=-\nabla\times\mathbf{E},\ \ \nabla\cdot\mathbf{E}=0,\ \ \nabla\cdot\mathbf{B}=0\]</p></div>
+  <div class="eq"><p style="font-size:22px">\begin{align*}&\partial_t\mathbf{E}=\nabla\times\mathbf{B}\\ &\partial_t\mathbf{B}=-\nabla\times\mathbf{E}\\ &\nabla\cdot\mathbf{E}=0\\ &\nabla\cdot\mathbf{B}=0\end{align*}</p></div>
   <p style="font-size:24px;margin-top:24px"> Our proposed algorithm:<br>
     <span class="fm">FLASH-MAX</span> (<b>F</b>ast-<b>L</b>earning <b>A</b>ccurate <b>S</b>olver for <b>H</b>omogeneous <b>MAX</b>well equations):<br> a custom neural network that solves the PDE <b>exactly</b> and trains in <b>seconds</b>.</p>
  </div>
@@ -153,7 +153,7 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
 
  <section class="slide t2"><div class="run">Experiment 1</div><h2>Race to 5% error: four ground truths, four methods</h2>
  <div class="cols" style="gap:28px"><div style="flex:1.7"><div id="race"></div><p class="sm" style="margin-top:8px;font-size:15px">Seconds to 5% validation error. bdry: ✓ boundary data used, ✗ initial data only. !: never reached 5% (best error shown). n/c: did not converge. –: FEM needs boundary data.</p></div>
- <div><p style="font-size:24px"><span class="fm">FLASH-MAX</span> is fastest everywhere: <b>3 to 59 s</b>.</p><div class="cn" style="font-size:21px">PINN: fails on Radial Waves (96%, 87%), stalls at 5.1% on Random</div><div class="cn" style="font-size:21px">S-EPGP: never reaches 5%</div><div class="cn" style="font-size:21px">FEM: 427 to 8561 s when it succeeds, misses on Plane</div><p class="sm" style="margin-top:8px;font-size:17px">Closest race: Hopf, 6.0 s (PINN) vs 3.2 s without boundary data.</p></div></div>
+ <div><p style="font-size:24px"><span class="fm">FLASH-MAX</span> is 2 orders of magnitude fastest everywhere: <b>3 to 59 s</b>.</p><div class="cn" style="font-size:21px">PINN: fails on Radial Waves, stalls at 5.7% on Random</div><div class="cn" style="font-size:21px">S-EPGP: rarely reaches 5%</div><div class="cn" style="font-size:21px">FEM: slow when it succeeds, misses on Plane and Radial</div><p class="sm" style="margin-top:8px;font-size:17px">Closest race: Plane, 119.3 s (FEM) vs 6.8 s with boundary data.</p></div></div>
  <p class="sm" style="font-size:16px;margin-top:6px">Truths: plane waves, radial waves, Hopf fibration, random solution.</p>
 </section>
 
@@ -169,7 +169,7 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
 <section class="slide t2"><div class="run">Experiment 3</div><h2>How little data is needed?</h2>
  <div style="max-width:930px;margin:24px auto 0"><div id="sens"></div></div>
  <div class="metric-row">
-  <div class="metric-card"><p class="metric-label">100 points</p><p>Single-digit error everywhere (worst 7.4%).</p></div>
+  <div class="metric-card"><p class="metric-label">100 points</p><p>Single-digit error everywhere <br>(worst 7.4%).</p></div>
   <div class="metric-card"><p class="metric-label">500 points</p><p>All ground truths under 1% error.</p></div>
  </div>
 </section>
