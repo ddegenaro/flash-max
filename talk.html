@@ -128,9 +128,9 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
 <section class="slide t2"><div class="run">Our contribution</div><h2><span class="fm">FLASH-MAX</span> architecture and training</h2>
  <div class="eq"><p style="font-size:20px">Let \(\mathbf{x}=(t,x,y,z)\), \(\mathbf{z}=(z_0,z_1,z_2,z_3)\). Our architecture is
   \begin{align*}
-  &(\hat{\mathbf{E}}(\mathbf{x}),\hat{\mathbf{B}}(\mathbf{x}))=\sum_{k=1}^{W} w_{j1}\,\mathbf{p}_1(\mathbf{z}_{j1})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{j1}+b_{j1}\right)+w_{j2}\,\mathbf{p}_2(\mathbf{z}_{j2})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{j2}+b_{j2}\right)\\
+  &(\hat{\mathbf{E}}(\mathbf{x}),\hat{\mathbf{B}}(\mathbf{x}))=\sum_{k=1}^{W} w_{k1}\,\mathbf{p}_1(\mathbf{z}_{k1})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{k1}+b_{k1}\right)+w_{k2}\,\mathbf{p}_2(\mathbf{z}_{k2})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{k2}+b_{k2}\right)  \\
   \text{where }&\begin{cases}
- z_0=\pm\sqrt{z_1^2+z_2^2+z_3^2},\\
+ z_0^2=z_1^2+z_2^2+z_3^2,\\
  \mathbf{p}_1(\mathbf{z})=(-z_1z_3,\,-z_2z_3,\,z_0^2-z_3^2,\,-z_0z_2,\,z_0z_1,\,0),\mathbf{p}_2(\mathbf{z})=(z_1z_2,\,-z_0^2+z_2^2,\,z_2z_3,\,-z_0z_3,\,0,\,z_0z_1).
  \end{cases}
  \end{align*}
