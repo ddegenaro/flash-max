@@ -102,7 +102,7 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
 
 <section class="slide t2"><div class="run">Our goal </div><h2>Reconstruct Maxwell solutions from sparse data</h2>
  <div style="max-width:1120px;margin-top:10px">
-  <p style="font-size:23px">Given measurements \((\mathbf{E}_i,\mathbf{B}_i)(t_i,x_i,y_i,z_i)\), approximate electromagnetic fields \(\mathbf{E},\mathbf{B}\) depending on <br>time \(t\) and space \((x,y,z)\) solving Maxwell's system:</p>
+  <p style="font-size:23px">Given measurements \((\mathbf{E}(t_i,x_i,y_i,z_i),\mathbf{B}(t_i,x_i,y_i,z_i))\), approximate electromagnetic fields \(\mathbf{E},\mathbf{B}\) depending on <br>time \(t\) and space \((x,y,z)\) solving Maxwell's system:</p>
   <div class="eq"><p style="font-size:22px">\begin{align*}&\partial_t\mathbf{E}=\nabla\times\mathbf{B}\\ &\partial_t\mathbf{B}=-\nabla\times\mathbf{E}\\ &\nabla\cdot\mathbf{E}=0\\ &\nabla\cdot\mathbf{B}=0\end{align*}</p></div>
   <p style="font-size:24px;margin-top:24px"> Our proposed algorithm:<br>
     <span class="fm">FLASH-MAX</span> (<b>F</b>ast-<b>L</b>earning <b>A</b>ccurate <b>S</b>olver for <b>H</b>omogeneous <b>MAX</b>well equations):<br> a custom neural network that solves the PDE <b>exactly</b> and trains in <b>seconds</b>.</p>
