@@ -128,14 +128,14 @@ td.fx{background:var(--tint);font-weight:600}td.x{color:var(--con)}.t2 h2{margin
 <section class="slide t2"><div class="run">Our contribution</div><h2><span class="fm">FLASH-MAX</span> architecture and training</h2>
  <div class="eq"><p style="font-size:20px">Let \(\mathbf{x}=(t,x,y,z)\), \(\mathbf{z}=(z_0,z_1,z_2,z_3)\). Our architecture is
   \begin{align*}
-  &(\hat{\mathbf{E}},\hat{\mathbf{B}})(\mathbf{x})=\sum_{k=1}^{W} w_{j1}\,\mathbf{p}_1(\mathbf{z}_{j1})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{j1}+b_{j1}\right)+w_{j2}\,\mathbf{p}_2(\mathbf{z}_{j2})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{j2}+b_{j2}\right)\\
+  &(\hat{\mathbf{E}}(\mathbf{x}),\hat{\mathbf{B}}(\mathbf{x}))=\sum_{k=1}^{W} w_{j1}\,\mathbf{p}_1(\mathbf{z}_{j1})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{j1}+b_{j1}\right)+w_{j2}\,\mathbf{p}_2(\mathbf{z}_{j2})\,\sigma\!\left(\mathbf{x}\cdot\mathbf{z}_{j2}+b_{j2}\right)\\
   \text{where }&\begin{cases}
  z_0=\pm\sqrt{z_1^2+z_2^2+z_3^2},\\
  \mathbf{p}_1(\mathbf{z})=(-z_1z_3,\,-z_2z_3,\,z_0^2-z_3^2,\,-z_0z_2,\,z_0z_1,\,0),\mathbf{p}_2(\mathbf{z})=(z_1z_2,\,-z_0^2+z_2^2,\,z_2z_3,\,-z_0z_3,\,0,\,z_0z_1).
  \end{cases}
  \end{align*}
 </p></div>
- <div class="card" style="padding:12px 18px"><p style="font-size:18px;margin-bottom:4px">Fitting from data \(\mathbf{Y}=(\mathbf{E},\mathbf{B})(\mathbf{X})\), covering both initial-value and initial-boundary-value problems. Training</p><p style="font-size:17px;margin:0">\[\mathrm{Loss}=\operatorname{MSE}\left((\hat{\mathbf{E}},\hat{\mathbf{B}})(\mathbf{X}),\mathbf Y\right)\]</p></div>
+ <div class="card" style="padding:12px 18px"><p style="font-size:18px;margin-bottom:4px">Fitting from data \((\mathbf{X},\mathbf{E}(\mathbf{X}),\mathbf{B}(\mathbf{X}))\) sampled from some ground-truth solution, covering both initial-value and initial-boundary-value problems. Training</p><p style="font-size:17px;margin:0">\[\mathrm{Loss}=\operatorname{MSE}\left((\hat{\mathbf{E}}(\mathbf{X}),\hat{\mathbf{B}}(\mathbf{X})),(\mathbf{E}(\mathbf{X}),\mathbf{B}(\mathbf{X}))\right)\]</p></div>
  <div class="network-bottom">
  <ul class="network-points">
   <li style="font-size:19px;margin-bottom:5px"><b>Exact:</b> every neuron is a Maxwell solution, so the residual is 0 by construction. The loss has data only.</li>
